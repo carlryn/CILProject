@@ -132,7 +132,8 @@ def run(img):
         #outdata[x, y] = colors[component]
 
     for comp in componentPixel:
-        if componentPixel[comp]<50:
+        #PLAY WITH THIS !!!!!!
+        if componentPixel[comp]<80:
             colors[comp] = (0,0,0)
     for (x, y) in labels:
         component = uf.find(labels[(x, y)])
