@@ -51,7 +51,9 @@ def binary_th(im_data, inx):
                 if np.sqrt(np.square(251 - im_data[i, j, 0]) + np.square(158 - im_data[i, j, 1]) + np.square(34- im_data[i, j, 2])) <80:
                     im_data[i,j,:] = 0
                 #yellow
-                elif np.sqrt(np.square(254 - im_data[i, j, 0]) + np.square(224 - im_data[i, j, 1]) + np.square(164- im_data[i, j, 2])) <40:
+                elif np.sqrt(np.square(254 - im_data[i, j, 0]) + np.square(224 - im_data[i, j, 1]) + np.square(164- im_data[i, j, 2])) <20:
+                    im_data[i,j,:] = 0
+                elif np.sqrt(np.square(254 - im_data[i, j, 0]) + np.square(224 - im_data[i, j, 1]) + np.square(105- im_data[i, j, 2])) <20:
                     im_data[i,j,:] = 0
                 elif np.sqrt(np.square(255 - im_data[i, j, 0]) + np.square(255 - im_data[i, j, 1]) + np.square(255 - im_data[i, j, 2])) > 20:
                     im_data[i, j, :] = 255
@@ -90,9 +92,9 @@ if not os.path.exists(os.path.join(DATA_ROOT, "processed")):
 image_files = glob(os.path.join(DATA_ROOT, '*.jpg'))
 im_path = image_files[57]
 inx = [int((i.split('./maps/train/groundtruth\\', 1)[1]).split(".jpg", 1)[0]) for i in image_files]
-for k in range(0, len(inx)):
+for k in range(214, len(inx)):
     im_path = image_files[k]
     print(im_path)
-    # im_path = "./maps/train/groundtruth\\618.jpg"
+    im_path = "./maps/train/groundtruth\\235.jpg"
     im_data = imread(im_path)
     binary_th(im_data, inx[k])
