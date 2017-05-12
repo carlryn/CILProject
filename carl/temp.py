@@ -9,12 +9,13 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from copy import copy
-from multiprocessing import Process
+from multiprocessing import Process, Manager
 import time
 
-name = ''
+manager = Manager()
+return_dict = manager.dict()
 
-def what(index,jump, thread_name, ones):
+def what(index,jump, thread_name, ones, return_dict):
     #ones_copy = copy(ones)
     n, d = ones.shape
     for i in range(index,n,jump):
@@ -22,8 +23,9 @@ def what(index,jump, thread_name, ones):
         for j in range(d):
             a = 2
         name = thread_name
+    return_dict[i] = thread_name
 
-ones = np.ones((8,100000000))
+ones = np.ones((8,100))
 
 # start = time.time()
 # what(0,1,'One thread', ones)
@@ -37,7 +39,7 @@ start = time.time()
 processes = []
 
 for i in range(threads):
-    p = Process(target=what, args=(i,threads,'Thread_{}'.format(i), ones))
+    p = Process(target=what, args=(i,threads,'Thread_{}'.format(i), ones, return_dict))
     p.start()
     processes.append(p)
 
@@ -49,4 +51,4 @@ end = time.time() - start
 print("4 ", end)
 a = 2
 
-print(name)
+print(return_dict.items())

@@ -3,7 +3,7 @@ from skimage.io import imread, imshow
 import matplotlib.pyplot as plt
 from copy import copy
 from math import pi, cos, sin
-
+import time
 
 '''
 The pixel being looked at is the one that is in the middle. The ray will go both "back and forth".
@@ -88,9 +88,11 @@ for i, row in enumerate(img_data):
             img_data[i,j] = [0,0,0]
 
 
-
+start = time.time()
 img_restorated = restorate(img_data, pixel_radius=20, directions=10)
+end = time.time()
 
+print("Total time:", end-start)
 
 fig = plt.figure()
 a=fig.add_subplot(1,2,1)
