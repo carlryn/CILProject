@@ -96,12 +96,10 @@ images = os.listdir(args.data_path)[:args.n_images]
 """
 3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
 """
-# pixel_radius_list = [20,30,40,50,60,70,80]
-# scores = [0.4,0.5,0.6,0.7,0.8]
-# directions = 60
-pixel_radius_list = [20]
-scores = [0.4]
-directions = 2
+pixel_radius_list = [20,30,40,50,60,70,80]
+scores = [0.4,0.5,0.6,0.7,0.8]
+directions = 60
+
 
 #Create folders for the different pixel radiuses
 for i, radius in enumerate(pixel_radius_list):
