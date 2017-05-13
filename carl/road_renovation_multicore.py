@@ -31,7 +31,7 @@ def restorate(img_data, pixel_radius, directions,score_min,index_start, index_st
     #Iterate over the pixels,
     for i in range(index_start, index_stop):
         row = img_data[i]
-        #print("Row:", i)
+        print("Row:", i)
         for j, pixel in enumerate(row):
             scores = []
             angle_steps = []
@@ -134,7 +134,7 @@ for i, img_path in enumerate(images):
                     is_set = True
                 else:
                     img_new = np.concatenate((img_new, value), axis = 0)
-            save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}".format(radius,score))
+            save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}".format(pixel_radius,score))
             save_img_path = os.path.join(save_dir_path,img_path)
             imsave(save_img_path,img_new)
 
