@@ -53,9 +53,9 @@ def restorate(img_data, pixel_radius, directions, index_start, index_stop, retur
             best_score = scores[np.argmax(scores)]
             if best_score > 0.55:
                # print("Score higher than 0.6 pixel:", i, j, "Score:", best_score)
-                img_data_new[i, j] = [255, 255, 255]
+                img_data_new[i - index_start, j] = [255, 255, 255]
             else:
-                img_data_new[i, j] = [0, 0, 0]
+                img_data_new[i -  index_start, j] = [0, 0, 0]
 
     return_dict[index_start] = img_data_new
 
@@ -96,8 +96,8 @@ for i, row in enumerate(img_data):
         if (data < 100).all():
             img_data[i,j] = [0,0,0]
 
-pixel_radius = 3
-directions = 3
+pixel_radius = 20
+directions = 20
 manager = Manager()
 return_dict = manager.dict()
 n_processes = 4
@@ -113,12 +113,15 @@ for i in range(n_processes):
 for p in processes:
     p.join()
 
-img_new = 0
+is_set = False
 for key,value in return_dict.items():
-    if img_new == 0:
+    if is_set == False:
         img_new = value
+        is_set = True
     else:
         img_new = np.concatenate((img_new, value), axis = 0)
+
+print(return_dict.keys())
 
 end = time.time()
 
@@ -136,8 +139,9 @@ a=fig.add_subplot(1,2,2)
 imgplot = plt.imshow(img_new)
 imgplot.set_clim(0.0,0.7)
 a.set_title('After')
-
 plt.show()
+
+
 imsave('renovate_ex.jpg',img_new)
 
 a = 2
