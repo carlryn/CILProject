@@ -141,5 +141,5 @@ for i, img_path in enumerate(images):
             save_img_path = os.path.join(save_dir_path,img_path)
             imsave(save_img_path,img_new)
         end = time.time()
-        print("Total time for all scores:", end-start)
+        print("Total time for all scores:", end-start, ", n_processes:", n_processes)
 
