@@ -11,10 +11,10 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_path', action='store_true', default='../idil/processed' ,help='skip the feature extraction')
-parser.add_argument('--run_all_images', default=False, type=bool, help='Should we run on all images')
+parser.add_argument('--data_path', default='../idil/processed' ,help='skip the feature extraction')
+parser.add_argument('--n_images', default=1, type=int, help='Should we run on all images')
 parser.add_argument('--n_processes', default=4, type=int, help='How many threads will run the restorate method')
-parser.add_argument('--save_dir', action='store_true', default='../data/restoration', help="Folder for saving processed images")
+parser.add_argument('--save_dir', default='../data/restoration', help="Folder for saving processed images")
 args = parser.parse_args()
 
 
@@ -90,15 +90,18 @@ if os.path.exists(args.save_dir) == False:
 """
 2. Get list of all images in the directory
 """
-images = os.listdir(args.data_path)[:100]
+images = os.listdir(args.data_path)[:args.n_images]
 
 
 """
 3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
 """
-pixel_radius_list = [20,30,40,50,60,70,80]
-scores = [0.4,0.5,0.6,0.7,0.8]
-directions = 60
+# pixel_radius_list = [20,30,40,50,60,70,80]
+# scores = [0.4,0.5,0.6,0.7,0.8]
+# directions = 60
+pixel_radius_list = [20]
+scores = [0.4]
+directions = 2
 
 #Create folders for the different pixel radiuses
 for i, radius in enumerate(pixel_radius_list):
@@ -138,5 +141,5 @@ for i, img_path in enumerate(images):
             save_img_path = os.path.join(save_dir_path,img_path)
             imsave(save_img_path,img_new)
         end = time.time()
-        print("Total time for all scores:", end-start, "Scores to process:", len(scores))
+        print("Total time for all scores:", end-start)
 
