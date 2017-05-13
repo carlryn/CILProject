@@ -5,12 +5,24 @@ from math import pi, cos, sin
 from multiprocessing import Process, Manager
 import numpy as np
 import time
+import os
+
+
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_path', action='store_true', default='../idil/processed' ,help='skip the feature extraction')
+parser.add_argument('--run_all_images', default=False, type=bool, help='Should we run on all images')
+parser.add_argument('--n_processes', default=4, type=int, help='How many threads will run the restorate method')
+parser.add_argument('--save_dir', action='store_true', default='../data/restoration', help="Folder for saving processed images")
+args = parser.parse_args()
+
 
 '''
 The pixel being looked at is the one that is in the middle. The ray will go both "back and forth".
 NOTE! This method is using multithreading. Change n_processes for as many process as you would like.
 '''
-def restorate(img_data, pixel_radius, directions, index_start, index_stop, return_dict):
+def restorate(img_data, pixel_radius, directions,score_min,index_start, index_stop, return_dict):
     h, w, d = img_data.shape
     img_data_new = copy(img_data)[index_start:index_stop]
     angles = get_angles(directions)
@@ -22,7 +34,7 @@ def restorate(img_data, pixel_radius, directions, index_start, index_stop, retur
     #Iterate over the pixels,
     for i in range(index_start, index_stop):
         row = img_data[i]
-        print("Row:", i)
+        #print("Row:", i)
         for j, pixel in enumerate(row):
             scores = []
             angle_steps = []
@@ -51,14 +63,13 @@ def restorate(img_data, pixel_radius, directions, index_start, index_stop, retur
                 scores[a] /= angle_steps[a]
 
             best_score = scores[np.argmax(scores)]
-            if best_score > 0.55:
+            if best_score > score_min:
                # print("Score higher than 0.6 pixel:", i, j, "Score:", best_score)
                 img_data_new[i - index_start, j] = [255, 255, 255]
             else:
                 img_data_new[i -  index_start, j] = [0, 0, 0]
 
     return_dict[index_start] = img_data_new
-
 
 def get_angles(directions):
     max_degr = pi
@@ -67,11 +78,6 @@ def get_angles(directions):
     for i in range(directions):
         angles.append(i*per_angle)
     return angles
-
-# def find_unit_goal(angles, unit_radius):
-#     x = np.cos(degree) * unit_radius
-#     y = np.sin(degree) * unit_radius
-#     return x,y
 
 def find_pixel_goal(h, w,angle, pixel_radius):
     x = np.cos(angle) * pixel_radius
@@ -85,63 +91,65 @@ def find_pixel_goal(h, w,angle, pixel_radius):
 # img_data = imread(data_test_path)
 # img_data = img_data[:,img_data.shape[1]//2:]
 
-data_test_path = '../data/road_renovation_test_image'
-img_data = imread(data_test_path)
-img_data = img_data[25:]
+
+"""
+1. Check that the directory exist
+"""
+if os.path.exists(args.save_dir) == False:
+    os.mkdir(args.save_dir)
+
+"""
+2. Get list of all images in the directory
+"""
+images = os.listdir(args.data_path)[:100]
 
 
-# The img is a screenshot, clean it up
-for i, row in enumerate(img_data):
-    for j, data in enumerate(row):
-        if (data < 100).all():
-            img_data[i,j] = [0,0,0]
+"""
+3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
+"""
+# pixel_radius_list = [20,30,40,50,60,70,80]
+# scores = [0.4,0.5,0.6,0.7,0.8]
+#directions = 60
+pixel_radius_list = [2]
+scores = [0.4]
+directions = 2
+#Create folders for the different pixel radiuses
+for i, radius in enumerate(pixel_radius_list):
+    for j, score in enumerate(scores):
+        dir = os.path.join(args.save_dir,"radius_{}_score_{}".format(radius,score))
+        if os.path.exists(dir) == False:
+            os.mkdir(dir)
 
-pixel_radius = 20
-directions = 20
-manager = Manager()
-return_dict = manager.dict()
-n_processes = 4
-x,y,d = img_data.shape
-interval = x//n_processes #Make sure image is dividable with n_processes
-processes = []
-start = time.time()
-for i in range(n_processes):
-    p = Process(target=restorate, args=(img_data,pixel_radius, directions, i*interval,(i + 1)*interval, return_dict))
-    p.start()
-    processes.append(p)
+for i, img_path in enumerate(images):
+    img_full_path = os.path.join(args.data_path, img_path)
+    img_data = imread(img_full_path)
+    img_data = img_data[:, img_data.shape[1] // 2:]
 
-for p in processes:
-    p.join()
+    for j,pixel_radius in enumerate(pixel_radius_list):
+        start = time.time()
+        for k, score in enumerate(scores):
+            manager = Manager()
+            return_dict = manager.dict()
+            n_processes = args.n_processes
+            x,y,d = img_data.shape
+            interval = x//n_processes #Make sure image is dividable with n_processes
+            processes = []
+            for l in range(n_processes):
+                p = Process(target=restorate, args=(img_data,pixel_radius, directions, score,l*interval,(l + 1)*interval, return_dict))
+                p.start()
+                processes.append(p)
+            for p in processes:
+                p.join()
+            is_set = False
+            for key,value in sorted(return_dict.items()):
+                if is_set == False:
+                    img_new = value
+                    is_set = True
+                else:
+                    img_new = np.concatenate((img_new, value), axis = 0)
+            save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}".format(radius,score))
+            save_img_path = os.path.join(save_dir_path,img_path)
+            imsave(save_img_path,img_new)
+        end = time.time()
+        print("Total time for all scores:", end-start, "Scores to process:", len(scores))
 
-is_set = False
-for key,value in return_dict.items():
-    if is_set == False:
-        img_new = value
-        is_set = True
-    else:
-        img_new = np.concatenate((img_new, value), axis = 0)
-
-print(return_dict.keys())
-
-end = time.time()
-
-print("Total time:", end-start)
-
-#img_restorated = restorate(img_data, pixel_radius=20, directions=10)
-
-
-fig = plt.figure()
-a=fig.add_subplot(1,2,1)
-img = img_data
-imgplot = plt.imshow(img_data)
-a.set_title('Before')
-a=fig.add_subplot(1,2,2)
-imgplot = plt.imshow(img_new)
-imgplot.set_clim(0.0,0.7)
-a.set_title('After')
-plt.show()
-
-
-imsave('renovate_ex.jpg',img_new)
-
-a = 2
