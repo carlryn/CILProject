@@ -114,9 +114,8 @@ for i, img_path in enumerate(images):
     img_full_path = os.path.join(args.data_path, img_path)
     img_data = imread(img_full_path)
     img_data = img_data[:, img_data.shape[1] // 2:]
-
+    start = time.time()
     for j,pixel_radius in enumerate(pixel_radius_list):
-        start = time.time()
         for k, score in enumerate(scores):
             manager = Manager()
             return_dict = manager.dict()
@@ -140,6 +139,7 @@ for i, img_path in enumerate(images):
             save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}".format(radius,score))
             save_img_path = os.path.join(save_dir_path,img_path)
             imsave(save_img_path,img_new)
-        end = time.time()
-        print("Total time for all scores:", end-start, ", n_processes:", n_processes)
+
+    end = time.time()
+    print("Total time image:", img_path ,end-start, ", n_processes:", n_processes)
 
