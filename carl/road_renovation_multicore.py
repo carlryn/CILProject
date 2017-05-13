@@ -27,9 +27,6 @@ def restorate(img_data, pixel_radius, directions,score_min,index_start, index_st
     img_data_new = copy(img_data)[index_start:index_stop]
     angles = get_angles(directions)
     steps = pixel_radius
-    # pixel_goals = []
-    # for angle in angles:
-    #     pixel_goals.append(find_pixel_goal(h,w,angle, pixel_radius))
 
     #Iterate over the pixels,
     for i in range(index_start, index_stop):
@@ -56,7 +53,6 @@ def restorate(img_data, pixel_radius, directions,score_min,index_start, index_st
                             pixel = img_data[x_index, y_index]
                             if (pixel >= 100).all():
                                 scores[a] += 1
-                            #img_data[x_index,y_index] = [0,0,125] #For coloring when testing
 
             #Pick angle with the highest score
             for a in range(len(angles)):
@@ -64,7 +60,6 @@ def restorate(img_data, pixel_radius, directions,score_min,index_start, index_st
 
             best_score = scores[np.argmax(scores)]
             if best_score > score_min:
-               # print("Score higher than 0.6 pixel:", i, j, "Score:", best_score)
                 img_data_new[i - index_start, j] = [255, 255, 255]
             else:
                 img_data_new[i -  index_start, j] = [0, 0, 0]
@@ -86,12 +81,6 @@ def find_pixel_goal(h, w,angle, pixel_radius):
     x_pixels = x/w * 100
     return x_pixels, y_pixels
 
-
-# data_test_path = '../data/106.jpg'
-# img_data = imread(data_test_path)
-# img_data = img_data[:,img_data.shape[1]//2:]
-
-
 """
 1. Check that the directory exist
 """
@@ -107,12 +96,10 @@ images = os.listdir(args.data_path)[:100]
 """
 3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
 """
-# pixel_radius_list = [20,30,40,50,60,70,80]
-# scores = [0.4,0.5,0.6,0.7,0.8]
-#directions = 60
-pixel_radius_list = [2]
-scores = [0.4]
-directions = 2
+pixel_radius_list = [20,30,40,50,60,70,80]
+scores = [0.4,0.5,0.6,0.7,0.8]
+directions = 60
+
 #Create folders for the different pixel radiuses
 for i, radius in enumerate(pixel_radius_list):
     for j, score in enumerate(scores):
