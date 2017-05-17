@@ -32,37 +32,39 @@ def restorate(img_data, pixel_radius, directions,score_min,index_start, index_st
     for i in range(index_start, index_stop):
         row = img_data[i]
         print("Row:", i)
-        for j, pixel in enumerate(row):
-            scores = []
-            angle_steps = []
-            for a,angle in enumerate(angles):
-                scores.append(0)
-                angle_steps.append(0)
-                for k in range(2):
-                    y_step = cos(angle) * pixel_radius/steps if k == 0 else -cos(angle) * pixel_radius/steps
-                    x_step = sin(angle) * pixel_radius/steps if k == 0 else -sin(angle) * pixel_radius/steps
-                    y_pos = j
-                    x_pos = i
-                    for _ in range(pixel_radius):
-                        x_pos += x_step
-                        y_pos += y_step
-                        x_index = int(x_pos)
-                        y_index = int(y_pos)
-                        if x_index >= 0 and y_index >=0 and x_index < h and y_index < w:
-                            angle_steps[a] += 1
-                            pixel = img_data[x_index, y_index]
-                            if (pixel >= 100).all():
-                                scores[a] += 1
+        if i >= pixel_radius:
+            for j, pixel in enumerate(row):
+                if j >= pixel_radius:
+                    scores = []
+                    angle_steps = []
+                    for a,angle in enumerate(angles):
+                        scores.append(0)
+                        angle_steps.append(0)
+                        for k in range(2):
+                            y_step = cos(angle) * pixel_radius/steps if k == 0 else -cos(angle) * pixel_radius/steps
+                            x_step = sin(angle) * pixel_radius/steps if k == 0 else -sin(angle) * pixel_radius/steps
+                            y_pos = j
+                            x_pos = i
+                            for _ in range(pixel_radius):
+                                x_pos += x_step
+                                y_pos += y_step
+                                x_index = int(x_pos)
+                                y_index = int(y_pos)
+                                if x_index >= 0 and y_index >=0 and x_index < h and y_index < w:
+                                    angle_steps[a] += 1
+                                    pixel = img_data[x_index, y_index]
+                                    if (pixel >= 100).all():
+                                        scores[a] += 1
 
-            #Pick angle with the highest score
-            for a in range(len(angles)):
-                scores[a] /= angle_steps[a]
+                    #Pick angle with the highest score
+                    for a in range(len(angles)):
+                        scores[a] /= angle_steps[a]
 
-            best_score = scores[np.argmax(scores)]
-            if best_score > score_min:
-                img_data_new[i - index_start, j] = [255, 255, 255]
-            else:
-                img_data_new[i -  index_start, j] = [0, 0, 0]
+                    best_score = scores[np.argmax(scores)]
+                    if best_score > score_min:
+                        img_data_new[i - index_start, j] = [255, 255, 255]
+                    else:
+                       img_data_new[i -  index_start, j] = [0, 0, 0]
 
     return_dict[index_start] = img_data_new
 
@@ -90,14 +92,14 @@ if os.path.exists(args.save_dir) == False:
 """
 2. Get list of all images in the directory
 """
-images = os.listdir(args.data_path)[:args.n_images]
-
+#images = os.listdir(args.data_path)[:args.n_images]
+images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.jpg','1051.jpg','1029.jpg']
 
 """
 3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
 """
-pixel_radius_list = [20,30,40,50,60,70,80]
-scores = [0.4,0.5,0.6,0.7,0.8]
+pixel_radius_list = [70,80,90]
+scores = [0.7,0.8,0.9,0.95]
 directions = 60
 
 
