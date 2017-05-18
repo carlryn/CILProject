@@ -30,8 +30,8 @@ def restorate(img_data, pixel_radius, directions,score_min,index_start, index_st
 
     #Iterate over the pixels,
     for i in range(index_start, index_stop):
- #       row = img_data[i]
-        print("Row:", i)
+        row = img_data[i]
+ #       print("Row:", i)
         if i >= pixel_radius:
             for j, pixel in enumerate(row):
                 if j >= pixel_radius:
