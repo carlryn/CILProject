@@ -1,7 +1,7 @@
 import os
 from glob import glob # for lists of files
 from skimage.io import imread, imshow, imsave # for reading images
-
+from skimage.color import rgb2gray
 from skimage.morphology import dilation, binary_dilation, closing, opening
 import numpy as np
 from PIL import Image, ImageDraw
@@ -49,16 +49,22 @@ def binary_th(im_data, inx):
             for j in range(0, im_data.shape[1]):
                 #orange
                 if np.sqrt(np.square(251 - im_data[i, j, 0]) + np.square(158 - im_data[i, j, 1]) + np.square(34- im_data[i, j, 2])) <80:
-                    im_data[i,j,:] = 0
+                    im_data[i,j,:] = 255
                 #yellow
                 elif np.sqrt(np.square(254 - im_data[i, j, 0]) + np.square(224 - im_data[i, j, 1]) + np.square(164- im_data[i, j, 2])) <20:
-                    im_data[i,j,:] = 0
+                    im_data[i,j,:] = 255
                 elif np.sqrt(np.square(254 - im_data[i, j, 0]) + np.square(224 - im_data[i, j, 1]) + np.square(105- im_data[i, j, 2])) <20:
-                    im_data[i,j,:] = 0
-                elif np.sqrt(np.square(255 - im_data[i, j, 0]) + np.square(255 - im_data[i, j, 1]) + np.square(255 - im_data[i, j, 2])) > 20:
-                    im_data[i, j, :] = 255
-                else:
-                    im_data[i, j, :] = 0
+                    im_data[i,j,:] = 255
+                #pink?
+                #elif np.sqrt(np.square(255 - im_data[i, j, 0]) + np.square(255 - im_data[i, j, 1]) + np.square(255 - im_data[i, j, 2])) > 20:
+                #    im_data[i, j, :] = 255
+                #else:
+                #    im_data[i, j, :] = 0
+        a = rgb2gray(im_data)
+        ind_0 = np.where(a < 0.96)  # background
+        ind_1 = np.where(a >= 0.96)
+        im_data[ind_0] = 255
+        im_data[ind_1] = 0
         imsave("example.png",im_data)
         img = cclabel.main("example.png")
         data = img.load()
@@ -95,6 +101,6 @@ inx = [int((i.split('./maps/train/groundtruth\\', 1)[1]).split(".jpg", 1)[0]) fo
 for k in range(214, len(inx)):
     im_path = image_files[k]
     print(im_path)
-    im_path = "./maps/train/groundtruth\\235.jpg"
+    #im_path = "./maps/train/groundtruth\\235.jpg"
     im_data = imread(im_path)
     binary_th(im_data, inx[k])
