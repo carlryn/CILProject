@@ -94,7 +94,7 @@ def find_evaluation_coords(img_data, pixel_radius, score):
                 whites.append([i,j])
 
 
-    splits = 20 #Calculating pairwise distances uses A LOT of RAM.
+    splits = 40 #Calculating pairwise distances uses A LOT of RAM.
     # Split the Blacks into many pieces to require less RAM.
     blacks_per_split = math.ceil(len(blacks)/splits)
     blacks_in_pieces = [blacks[i:i + blacks_per_split]
@@ -102,12 +102,12 @@ def find_evaluation_coords(img_data, pixel_radius, score):
                           else blacks[i:-1]
                           for i in range(0, len(blacks), blacks_per_split)]
 
+    pixels_for_evaluation = list()
     whites_arr = np.asarray(whites)
     for blacks_split in blacks_in_pieces:
         blacks_arr = np.asarray(blacks_split)
         distances = cdist(blacks_arr,whites_arr)
         n,d = distances.shape
-        pixels_for_evaluation = list()
         for i in range(n):
             count = len(np.where(distances[i] < pixel_radius)[0])
 
@@ -142,7 +142,7 @@ images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.j
 
 pixel_radius_list = [70]
 scores = [0.7]
-directions = 60
+directions = 30
 
 
 #Create folders for the different pixel radiuses
