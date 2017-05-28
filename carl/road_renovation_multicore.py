@@ -104,7 +104,7 @@ def find_evaluation_coords(img_data, pixel_radius, score):
 
     pixels_for_evaluation = list()
     whites_arr = np.asarray(whites)
-    for blacks_split in blacks_in_pieces:
+    for j, blacks_split in enumerate(blacks_in_pieces):
         blacks_arr = np.asarray(blacks_split)
         distances = cdist(blacks_arr,whites_arr)
         n,d = distances.shape
@@ -112,7 +112,7 @@ def find_evaluation_coords(img_data, pixel_radius, score):
             count = len(np.where(distances[i] < pixel_radius)[0])
 
             if count > min_white_pixels:
-                pixels_for_evaluation.append(blacks[i])
+                pixels_for_evaluation.append(blacks_split[i])
 
     end = time.time()
 
@@ -121,74 +121,75 @@ def find_evaluation_coords(img_data, pixel_radius, score):
     print("p_eval:", p_eval)
     return pixels_for_evaluation
 
+def main():
+    """
+    1. Check that the directory exist
+    """
+    if os.path.exists(args.save_dir) == False:
+        os.mkdir(args.save_dir)
 
-"""
-1. Check that the directory exist
-"""
-if os.path.exists(args.save_dir) == False:
-    os.mkdir(args.save_dir)
-
-"""
-2. Get list of all images in the directory
-"""
-# images = os.listdir(args.data_path)[:args.n_images]
-images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.jpg','1051.jpg','1029.jpg']
-# images = ['road_renovation_test_image.png']
-
-
-"""
-3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
-"""
-
-pixel_radius_list = [65]
-scores = [0.65]
-directions = 60
+    """
+    2. Get list of all images in the directory
+    """
+    # images = os.listdir(args.data_path)[:args.n_images]
+    images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.jpg','1051.jpg','1029.jpg']
+    # images = ['road_renovation_test_image.png']
 
 
-#Create folders for the different pixel radiuses
-for i, radius in enumerate(pixel_radius_list):
-    for j, score in enumerate(scores):
-        dir = os.path.join(args.save_dir,"radius_{}_score_{}".format(radius,score))
-        if os.path.exists(dir) == False:
-            os.mkdir(dir)
+    """
+    3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
+    """
 
-for i, img_path in enumerate(images):
-    img_full_path = os.path.join(args.data_path, img_path)
-    img_data = imread(img_full_path)
-    img_data = img_data[:, img_data.shape[1] // 2:]
-    start = time.time()
-    for j,pixel_radius in enumerate(pixel_radius_list):
-        for k, score in enumerate(scores):
+    pixel_radius_list = [65]
+    scores = [0.65]
+    directions = 60
 
-            manager = Manager()
-            return_dict = manager.dict()
-            n_processes = args.n_processes
-            pixels_to_evaluate = find_evaluation_coords(img_data, pixel_radius, score)
-            pixels_per_process = math.ceil(len(pixels_to_evaluate)/n_processes)
-            distributed_pixels = [pixels_to_evaluate[i:i+pixels_per_process]
-                                  if len(pixels_to_evaluate) > (i+pixels_per_process)
-                                  else pixels_to_evaluate[i:-1]
-                                  for i in range(0,len(pixels_to_evaluate),pixels_per_process)]
-            x,y,d = img_data.shape
-            interval = x//n_processes #Make sure image is dividable with n_processes
-            processes = []
-            for l in range(n_processes):
-                p = Process(target=restorate, args=(img_data,distributed_pixels[l],pixel_radius, directions, score ,return_dict, l))
-                p.start()
-                processes.append(p)
-            for p in processes:
-                p.join()
-            img_new = copy(img_data)
-            for key,pixels in sorted(return_dict.items()):
-                for coord in pixels:
-                    x = coord[0]
-                    y = coord[1]
-                    img_new[x,y] = [255,255,255]
 
-            save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}".format(pixel_radius,score))
-            save_img_path = os.path.join(save_dir_path,img_path)
-            imsave(save_img_path,img_new)
+    #Create folders for the different pixel radiuses
+    for i, radius in enumerate(pixel_radius_list):
+        for j, score in enumerate(scores):
+            dir = os.path.join(args.save_dir,"radius_{}_score_{}".format(radius,score))
+            if os.path.exists(dir) == False:
+                os.mkdir(dir)
 
-    end = time.time()
-    print("Total time image:", img_path ,end-start, ", n_processes:", n_processes)
+    for i, img_path in enumerate(images):
+        img_full_path = os.path.join(args.data_path, img_path)
+        img_data = imread(img_full_path)
+        img_data = img_data[:, img_data.shape[1] // 2:]
+        start = time.time()
+        for j,pixel_radius in enumerate(pixel_radius_list):
+            for k, score in enumerate(scores):
 
+                manager = Manager()
+                return_dict = manager.dict()
+                n_processes = args.n_processes
+                pixels_to_evaluate = find_evaluation_coords(img_data, pixel_radius, score)
+                pixels_per_process = math.ceil(len(pixels_to_evaluate)/n_processes)
+                distributed_pixels = [pixels_to_evaluate[i:i+pixels_per_process]
+                                      if len(pixels_to_evaluate) > (i+pixels_per_process)
+                                      else pixels_to_evaluate[i:-1]
+                                      for i in range(0,len(pixels_to_evaluate),pixels_per_process)]
+                x,y,d = img_data.shape
+                interval = x//n_processes #Make sure image is dividable with n_processes
+                processes = []
+                for l in range(n_processes):
+                    p = Process(target=restorate, args=(img_data,distributed_pixels[l],pixel_radius, directions, score ,return_dict, l))
+                    p.start()
+                    processes.append(p)
+                for p in processes:
+                    p.join()
+                img_new = copy(img_data)
+                for key,pixels in sorted(return_dict.items()):
+                    for coord in pixels:
+                        x = coord[0]
+                        y = coord[1]
+                        img_new[x,y] = [255,255,255]
+
+                save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}".format(pixel_radius,score))
+                save_img_path = os.path.join(save_dir_path,img_path)
+                imsave(save_img_path,img_new)
+
+        end = time.time()
+        print("Total time image:", img_path ,end-start, ", n_processes:", n_processes)
+
+main()
