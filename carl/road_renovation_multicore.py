@@ -140,9 +140,9 @@ images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.j
 3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
 """
 
-pixel_radius_list = [70]
-scores = [0.7]
-directions = 30
+pixel_radius_list = [65]
+scores = [0.65]
+directions = 60
 
 
 #Create folders for the different pixel radiuses
