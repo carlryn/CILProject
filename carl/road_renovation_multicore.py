@@ -131,8 +131,8 @@ def main():
     """
     2. Get list of all images in the directory
     """
-    # images = os.listdir(args.data_path)[:args.n_images]
-    images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.jpg','1051.jpg','1029.jpg']
+    images = os.listdir(args.data_path)
+    #images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.jpg','1051.jpg','1029.jpg']
     # images = ['road_renovation_test_image.png']
 
 
