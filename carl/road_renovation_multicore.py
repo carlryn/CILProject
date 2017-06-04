@@ -134,7 +134,9 @@ def main():
     images = os.listdir(args.data_path)
     #images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.jpg','1051.jpg','1029.jpg']
     # images = ['road_renovation_test_image.png']
-
+    save_path = '../data/restoration/radius_65_score_0.65' #TODO this is hard coded atm
+    processed_images = os.listdir(save_path)
+    images = [x for x in images if not x in processed_images]
 
     """
     3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
