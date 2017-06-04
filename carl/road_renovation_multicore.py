@@ -106,13 +106,14 @@ def find_evaluation_coords(img_data, pixel_radius, score):
     whites_arr = np.asarray(whites)
     for j, blacks_split in enumerate(blacks_in_pieces):
         blacks_arr = np.asarray(blacks_split)
-        distances = cdist(blacks_arr,whites_arr)
-        n,d = distances.shape
-        for i in range(n):
-            count = len(np.where(distances[i] < pixel_radius)[0])
+        if len(blacks_arr) > 1:
+            distances = cdist(blacks_arr,whites_arr)
+            n,d = distances.shape
+            for i in range(n):
+                count = len(np.where(distances[i] < pixel_radius)[0])
 
-            if count > min_white_pixels:
-                pixels_for_evaluation.append(blacks_split[i])
+                if count > min_white_pixels:
+                    pixels_for_evaluation.append(blacks_split[i])
 
     end = time.time()
 
