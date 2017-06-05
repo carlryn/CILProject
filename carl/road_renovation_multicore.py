@@ -156,7 +156,7 @@ def main():
                 os.mkdir(dir)
 
     for i, img_path in enumerate(images):
-	print('image:', img_path)
+        print('image:', img_path)
         img_full_path = os.path.join(args.data_path, img_path)
         img_data = imread(img_full_path)
         img_data = img_data[:, img_data.shape[1] // 2:]
