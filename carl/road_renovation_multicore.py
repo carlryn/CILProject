@@ -106,7 +106,7 @@ def find_evaluation_coords(img_data, pixel_radius, score):
     whites_arr = np.asarray(whites)
     for j, blacks_split in enumerate(blacks_in_pieces):
         blacks_arr = np.asarray(blacks_split)
-        if len(blacks_arr) > 1:
+        if len(blacks_arr) > 0 and len(whites_arr) > 0:
             distances = cdist(blacks_arr,whites_arr)
             n,d = distances.shape
             for i in range(n):
@@ -138,11 +138,10 @@ def main():
     save_path = '../data/restoration/radius_65_score_0.65' #TODO this is hard coded atm
     processed_images = os.listdir(save_path)
     images = [x for x in images if not x in processed_images]
-
     """
     3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
     """
-
+    #1011
     pixel_radius_list = [65]
     scores = [0.65]
     directions = 60
@@ -168,6 +167,8 @@ def main():
                 return_dict = manager.dict()
                 n_processes = args.n_processes
                 pixels_to_evaluate = find_evaluation_coords(img_data, pixel_radius, score)
+                if len(pixels_to_evaluate) < n_processes:
+                    continue
                 pixels_per_process = math.ceil(len(pixels_to_evaluate)/n_processes)
                 distributed_pixels = [pixels_to_evaluate[i:i+pixels_per_process]
                                       if len(pixels_to_evaluate) > (i+pixels_per_process)
