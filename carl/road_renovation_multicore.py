@@ -118,7 +118,7 @@ def find_evaluation_coords(img_data, pixel_radius, score):
     end = time.time()
 
     print("Filtering pixels time:", end-start)
-    p_eval = float(len(pixels_for_evaluation) / (n-pixel_radius*2)**2 ) * 100
+    p_eval = float(len(pixels_for_evaluation) / ((n-pixel_radius*2.0)**2) ) * 100
     print("p_eval:", p_eval)
     return pixels_for_evaluation
 
@@ -138,10 +138,13 @@ def main():
     save_path = '../data/restoration/radius_65_score_0.65' #TODO this is hard coded atm
     processed_images = os.listdir(save_path)
     images = [x for x in images if not x in processed_images]
+    if len(images) is 0:
+        print("No images left to process!")
+
     """
     3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
     """
-    #1011
+    images = ['1.jpg']
     pixel_radius_list = [65]
     scores = [0.65]
     directions = 60
