@@ -145,9 +145,9 @@ def main():
     3. Create lists for testing the different parameters, e.g score, pixel_radius, directions
     """
     # images = ['1.jpg']
-    # pixel_radius_list = [65]
-    # scores = [0.65]
-    # directions = 60
+    pixel_radius_list = [65]
+    scores = [0.65]
+    directions = 60
 
 
     #Create folders for the different pixel radiuses
