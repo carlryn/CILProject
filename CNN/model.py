@@ -24,7 +24,6 @@ class CNN_model:
 
         # First Pool layer
         stride_pool = [1,1,1,1]
-        b = 2
         ksize = [1,2,2,1]
         pool1 = tf.nn.max_pool(conv_1,ksize,stride_pool,padding)
 
@@ -56,8 +55,18 @@ class CNN_model:
         shape = int(np.prod(fc1.get_shape()[1:]))
         fc2w = tf.Variable(tf.truncated_normal([shape,256], dtype=tf.float32,stddev=1e-1), name='fc2w')
         fc2b = tf.Variable(tf.constant(1.0, shape=[256], dtype=tf.float32), trainable=True,name='fc2b')
+        fc2 = tf.nn.relu(tf.matmul(fc1,fc2w) +fc2b)
+        fc2 = tf.nn.dropout(fc2,0.5)
 
+        shape = int(np.prod(fc2.get_shape()[1:]))
+        n_classes = 2
+        outw = tf.Variable(tf.truncated_normal([shape,n_classes],dtype=tf.float32,
+                                               stddev=1e-1), name='outw')
+        outb = tf.Variable(tf.constant(1.0, shape=[n_classes], dtype=tf.float32),
+                           trainable=True, name='outb')
+        output = tf.matmul(fc2,outw) + outb
 
+        return output
 
         a = 2
         # #First FC layer 1
