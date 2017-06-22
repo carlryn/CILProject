@@ -58,24 +58,25 @@ class CNN_model:
         fc2 = tf.nn.relu(tf.matmul(fc1,fc2w) +fc2b)
         fc2 = tf.nn.dropout(fc2,0.5)
 
-        shape = int(np.prod(fc2.get_shape()[1:]))
-        n_classes = 2
-        outw = tf.Variable(tf.truncated_normal([shape,n_classes],dtype=tf.float32,
-                                               stddev=1e-1), name='outw')
-        outb = tf.Variable(tf.constant(1.0, shape=[n_classes], dtype=tf.float32),
-                           trainable=True, name='outb')
-        output = tf.matmul(fc2,outw) + outb
+        # shape = int(np.prod(fc2.get_shape()[1:]))
+        # n_classes = 2
+        # outw = tf.Variable(tf.truncated_normal([shape,n_classes],dtype=tf.float32,
+        #                                        stddev=1e-1), name='outw')
+        # outb = tf.Variable(tf.constant(1.0, shape=[n_classes], dtype=tf.float32),
+        #                    trainable=True, name='outb')
+        # output = tf.matmul(fc2,outw) + outb
 
-        return output
+        # if t is not None:
+        #     self.loss = F.sigmoid_cross_entropy(self.pred, t, normalize=False)
+        #     return self.loss
+        # else:
+        #     self.pred = F.sigmoid(self.pred)
+        #     return self.pred
 
-        a = 2
-        # #First FC layer 1
-        # drop_out = 0.5
-        # fc = tf.reshape(conv_3, (720,3920*4096))
-        # weights = tf.Variable(initial_value=tf.random_normal([3920,4096]))
-        # biases = tf.Variable(initial_value=tf.random_normal([4096]))
-        # fc = tf.nn.relu(tf.matmul(fc, weights) + biases)
-        # fc = tf.nn.dropout(fc,drop_out)
+        self.pred = tf.sigmoid(fc2)
+        return self.pred
+
+
 
 
 
