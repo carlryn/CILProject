@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import numpy as np
 
 class CNN_model:
 
@@ -42,14 +42,32 @@ class CNN_model:
         filter_3 = tf.Variable(initial_value=tf.random_normal([b,b,112,80]))
         conv_3 = tf.nn.conv2d(conv_2,filter_3,stride_conv,padding)
 
+        shape = int(np.prod(conv_3.get_shape()[1:]))
+        conv_3_flat = tf.reshape(conv_3, [-1, shape])
+
+        fc1w = tf.Variable(tf.truncated_normal([shape, 4096], dtype=tf.float32, stddev=1e-1), name='fc1w')
+        fc1b = tf.Variable(tf.constant(1.0, shape=[4096], dtype=tf.float32),
+                           trainable=True, name='biases')
+
+        fc1 = tf.nn.bias_add(tf.matmul(conv_3_flat, fc1w), fc1b)
+        fc1 = tf.nn.relu(fc1)
+        fc1 = tf.nn.dropout(fc1,0.5)
+
+        shape = int(np.prod(fc1.get_shape()[1:]))
+        fc2w = tf.Variable(tf.truncated_normal([shape,256], dtype=tf.float32,stddev=1e-1), name='fc2w')
+        fc2b = tf.Variable(tf.constant(1.0, shape=[256], dtype=tf.float32), trainable=True,name='fc2b')
+
+
+
         a = 2
         # #First FC layer 1
         # drop_out = 0.5
-        # # fc = tf.reshape(conv_3, (64,))
-        # fc = tf.nn.dropout(conv_3,drop_out)
-        # weights = tf.Variable(initial_value=tf.random_variable([3920,4096]))
-        # biases = tf.Variable(initial_value=tf.random_variable(4096))
+        # fc = tf.reshape(conv_3, (720,3920*4096))
+        # weights = tf.Variable(initial_value=tf.random_normal([3920,4096]))
+        # biases = tf.Variable(initial_value=tf.random_normal([4096]))
         # fc = tf.nn.relu(tf.matmul(fc, weights) + biases)
+        # fc = tf.nn.dropout(fc,drop_out)
+
 
 
 
