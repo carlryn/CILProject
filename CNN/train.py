@@ -3,13 +3,12 @@ import time
 import datetime
 import math
 import numpy as np
-from tensorflow.contrib import learn
 import tensorflow as tf
 
 # OUR IMPORTS
 import model
 import utils
-import utils_model
+
 
 import matplotlib.pyplot as plt
 
@@ -17,27 +16,21 @@ import matplotlib.pyplot as plt
 # details: https://www.tensorflow.org/get_started/get_started
 
 # Data directory
-path_train = "../data/sentences.train"
-path_test = "../data/sentences.test"
+path_train = "../idil/forTraining"
+path_test = "../idil/sentences.test"
 
 # Load data
-training_data, validation_data, word_ID_map = utils.load_and_preprocess(path_train, sample=5000)
 
 # Model Hyperparameters
 tf.flags.DEFINE_float("dropout_rate", 0.5, "Dropout rate (default: 0.5)")
-tf.flags.DEFINE_float("hidden_size", 512, "Number of LSTM units in the model")
-tf.flags.DEFINE_integer("vocab_size", 20000, "vocabulary size (default: 20000)")
-tf.flags.DEFINE_integer("embedding_dimension", 100, "learning rate (default: 1e-3)")
 
 # Training Parameters
 tf.flags.DEFINE_integer("learning_rate", 1e-3, "learning rate (default: 1e-3)")
-tf.flags.DEFINE_integer("batch_size", 64, "Batch Size")
+tf.flags.DEFINE_integer("batch_size", 2, "Batch Size")
 tf.flags.DEFINE_integer("validation_size", 0.3, "Validation set size as % of initial dataset")
 tf.flags.DEFINE_integer("num_epochs", 100, "Number of full passess over whole training data (default: 100)")
 tf.flags.DEFINE_integer("evaluate_every_step", 1000,
                         "Evaluate model on validation set after this many steps/iterations (i.e., batches) (default: 500)")
-tf.flags.DEFINE_integer("epoch_length", int(training_data[0].shape[0] / tf.flags.FLAGS.batch_size),
-                        "Steps required to complete 1 epoch")
 
 # Log Parameters
 tf.flags.DEFINE_integer("print_every_step", 200,
@@ -61,14 +54,19 @@ print("Writing to {}\n".format(FLAGS.model_dir))
 
 def main(unused_argv):
     # Get input dimensionality. TODO check best way of defining sizes
-    SENTENCE_LENGTH = training_data.shape[1]
+
+    training_data, validation_data = utils.load_train_data(path_train, sample=2)
 
     # Placeholder variables are used to change the input to the graph.
     # This is where training samples and labels are fed to the graph.
     # These will be fed a batch of training data at each training step
     # using the {feed_dict} argument to the sess.run() call below.
-    input_samples_op = tf.placeholder(tf.int32, shape=[FLAGS.batch_size, SENTENCE_LENGTH],
-                                      name="input_samples")
+    # input_samples_op = tf.placeholder(tf.int32, shape=[FLAGS.batch_size, SENTENCE_LENGTH],
+    #                                   name="input_samples")
+    batch_size = FLAGS.batch_size
+    w,h = 256,256
+    input_samples_op = tf.placeholder(tf.float32, shape=(batch_size,w,h),
+                                      name='input_samples')
 
     # Define embedding vectors matrix.
     # define word embedding matrix ( this is trained as part of the model )
@@ -86,14 +84,11 @@ def main(unused_argv):
     # (2) Calculate the average value, evaluate the corresponding summaries
     # by using loss_avg and accuracy_avg placeholders.
     loss_avg = tf.placeholder(tf.float32, name="loss_avg")
-    accuracy_avg = tf.placeholder(tf.float32, name="accuracy_avg")
+    # accuracy_avg = tf.placeholder(tf.float32, name="accuracy_avg")
 
     # Call the function that builds the network.
     # It returns the logits for the batch [batch_size, sentence_len - 1, embedding_dim].
-    logits, labels = model.agricultural_LSTM(input_samples_op, mode,
-                                             dropout_rate=FLAGS.dropout_rate, hidden_size=FLAGS.hidden_size,
-                                             batch_size=FLAGS.batch_size, embedding_size=FLAGS.embedding_dimension,
-                                             vocab_size=FLAGS.vocab_size)
+    logits, labels = model.agricultural_LSTM(input_samples_op,batch_size)
 
     # Loss calculations: cross-entropy
     with tf.name_scope("cross_entropy_loss"):

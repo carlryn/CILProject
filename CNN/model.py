@@ -6,13 +6,13 @@ class CNN_model:
     def __init__(self):
         self.a = 2
 
-    def get_graph(self,w,h,batch_size):
+    def get_graph(self,input,batch_size,dropout_rate=0.5):
 
         d_type = tf.float32
         inp_channels = 3
-        input = tf.placeholder(tf.float32,shape=(batch_size,w,h,inp_channels))
+        # input = tf.placeholder(tf.float32,shape=(batch_size,w,h,inp_channels))
+        self.input = input
         padding = 'SAME'
-
 
         #First Conv layer
         out_channels = 64
@@ -56,24 +56,12 @@ class CNN_model:
         fc2w = tf.Variable(tf.truncated_normal([shape,256], dtype=tf.float32,stddev=1e-1), name='fc2w')
         fc2b = tf.Variable(tf.constant(1.0, shape=[256], dtype=tf.float32), trainable=True,name='fc2b')
         fc2 = tf.nn.relu(tf.matmul(fc1,fc2w) +fc2b)
-        fc2 = tf.nn.dropout(fc2,0.5)
+        # fc2 = tf.nn.dropout(fc2,0.5)
 
-        # shape = int(np.prod(fc2.get_shape()[1:]))
-        # n_classes = 2
-        # outw = tf.Variable(tf.truncated_normal([shape,n_classes],dtype=tf.float32,
-        #                                        stddev=1e-1), name='outw')
-        # outb = tf.Variable(tf.constant(1.0, shape=[n_classes], dtype=tf.float32),
-        #                    trainable=True, name='outb')
-        # output = tf.matmul(fc2,outw) + outb
+        self.pred = tf.reshape(fc2,[64,16,16])
 
-        # if t is not None:
-        #     self.loss = F.sigmoid_cross_entropy(self.pred, t, normalize=False)
-        #     return self.loss
-        # else:
-        #     self.pred = F.sigmoid(self.pred)
-        #     return self.pred
-
-        self.pred = tf.sigmoid(fc2)
+        self.pred = tf.sigmoid(self.pred)
+        # self.pred = tf.reshape(self.pred,[self.pred.get_shape()[0],w,h])
         return self.pred
 
 
@@ -83,5 +71,5 @@ class CNN_model:
 
 
 model = CNN_model()
-model.get_graph(10,10,64)
+model.get_graph(256,256,64)
 a= 2
