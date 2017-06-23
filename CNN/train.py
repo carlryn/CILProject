@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 # OUR IMPORTS
-import model
+from model import CNN_model
 import utils
 
 
@@ -88,7 +88,8 @@ def main(unused_argv):
 
     # Call the function that builds the network.
     # It returns the logits for the batch [batch_size, sentence_len - 1, embedding_dim].
-    logits, labels = model.agricultural_LSTM(input_samples_op,batch_size)
+    model = CNN_model()
+    logits = model.get_graph(input_samples_op,batch_size)
 
     # Loss calculations: cross-entropy
     with tf.name_scope("cross_entropy_loss"):
@@ -97,18 +98,18 @@ def main(unused_argv):
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
 
     # Accuracy calculations.
-    with tf.name_scope("accuracy"):
-        # Return list of predictions (useful for making a submission)
-        predictions = tf.argmax(logits, axis=2, name="predictions")
-        labels_index = labels
-        # Return a float indicating the % of correctly predicted words for the batch
-        bool_predictions = tf.equal(predictions, tf.cast(labels_index, dtype=tf.int64))
-        # temp = tf.reduce_sum(tf.cast(bool_predictions, tf.float32))
-        # temp = tf.Print(temp,[temp, (FLAGS.batch_size*(SENTENCE_LENGTH-1))])
-        batch_accuracy = tf.divide(tf.reduce_sum(tf.cast(bool_predictions, tf.float32)),
-                                   (FLAGS.batch_size * (SENTENCE_LENGTH - 1)))
-        # Number of correct predictions in order to calculate average accuracy afterwards.
-        num_correct_predictions = tf.reduce_sum(tf.cast(bool_predictions, tf.int32))
+    # with tf.name_scope("accuracy"):
+    #     # Return list of predictions (useful for making a submission)
+    #     predictions = tf.argmax(logits, axis=2, name="predictions")
+    #     labels_index = labels
+    #     # Return a float indicating the % of correctly predicted words for the batch
+    #     bool_predictions = tf.equal(predictions, tf.cast(labels_index, dtype=tf.int64))
+    #     # temp = tf.reduce_sum(tf.cast(bool_predictions, tf.float32))
+    #     # temp = tf.Print(temp,[temp, (FLAGS.batch_size*(SENTENCE_LENGTH-1))])
+    #     # batch_accuracy = tf.divide(tf.reduce_sum(tf.cast(bool_predictions, tf.float32)),
+    #     #                            (FLAGS.batch_size * (SENTENCE_LENGTH - 1)))
+    #     # Number of correct predictions in order to calculate average accuracy afterwards.
+    #     num_correct_predictions = tf.reduce_sum(tf.cast(bool_predictions, tf.int32))
 
     def do_evaluation(sess, samples):
         '''
@@ -118,18 +119,18 @@ def main(unused_argv):
         @param labels: ground-truth labels (numpy array)
         '''
         # Keep track of this run.
-        batches = utils_model.data_iterator(training_data, FLAGS.batch_size)
-        counter_accuracy = 0.0
-        counter_loss = 0.0
-        counter_batches = 0
-        for batch_samples in batches:
-            counter_batches += 1
-            feed_dict = {input_samples_op: batch_samples,
-                         mode: False}
-            results = sess.run([loss, num_correct_predictions], feed_dict=feed_dict)
-            counter_loss += results[0]
-            counter_accuracy += results[1]
-        return (tf.reduce_mean(counter_loss) / counter_batches, counter_accuracy / (counter_batches * FLAGS.batch_size))
+        # batches = utils_model.data_iterator(training_data, FLAGS.batch_size)
+        # counter_accuracy = 0.0
+        # counter_loss = 0.0
+        # counter_batches = 0
+        # for batch_samples in batches:
+        #     counter_batches += 1
+        #     feed_dict = {input_samples_op: batch_samples,
+        #                  mode: False}
+        #     results = sess.run([loss, num_correct_predictions], feed_dict=feed_dict)
+        #     counter_loss += results[0]
+        #     counter_accuracy += results[1]
+        # return (tf.reduce_mean(counter_loss) / counter_batches, counter_accuracy / (counter_batches * FLAGS.batch_size))
 
     # Generate a variable to contain a counter for the global training step.
     # Note that it is useful to save/restore network and to set things like annealing schedules for learning rate.
@@ -164,13 +165,15 @@ def main(unused_argv):
     # Each summary op annotates a node in the computational graph and collects
     # data data from it.
     summary_trian_loss = tf.summary.scalar('loss', tf.reduce_mean(loss))
-    summary_train_acc = tf.summary.scalar('accuracy_training', batch_accuracy)
-    summary_avg_accuracy = tf.summary.scalar('accuracy_avg', accuracy_avg)
+    # summary_train_acc = tf.summary.scalar('accuracy_training', batch_accuracy)
+    # summary_avg_accuracy = tf.summary.scalar('accuracy_avg', accuracy_avg)
     summary_learning_rate = tf.summary.scalar('learning_rate', FLAGS.learning_rate)
 
     # Group summaries.
-    summaries_training = tf.summary.merge([summary_trian_loss, summary_train_acc, summary_learning_rate])
-    summaries_evaluation = tf.summary.merge([summary_avg_accuracy])
+    # summaries_training = tf.summary.merge([summary_trian_loss, summary_train_acc, summary_learning_rate])
+    summaries_training = tf.summary.merge([summary_trian_loss,summary_learning_rate])
+
+    # summaries_evaluation = tf.summary.merge([summary_avg_accuracy])
 
     # Register summary ops.
     train_summary_dir = os.path.join(FLAGS.model_dir, "summary", "train")
@@ -188,9 +191,9 @@ def main(unused_argv):
     for epoch in range(1, FLAGS.num_epochs + 1):
         # Generate training batches
 
-        training_batches = utils_model.data_iterator(training_data, FLAGS.batch_size)
+        training_batches = [training_data[i:i+batch_size] for i in range(0,len(training_data),batch_size)]
         # Training loop.
-        for batch_samples in training_batches:
+        for i,batch_samples in enumerate(training_batches):
             step = tf.train.global_step(sess, global_step)
 
             if (step % FLAGS.checkpoint_every_step) == 0:
@@ -206,7 +209,7 @@ def main(unused_argv):
             # Note that "train_op" is responsible from updating network weights.
             # Only the operations that are fed are evaluated.
             train_summary, correct_predictions_training, loss_training, _ = sess.run(
-                [summaries_training, num_correct_predictions, loss, train_op], feed_dict=feed_dict)
+                [summaries_training, loss, train_op], feed_dict=feed_dict)
 
             # Update counters.
             counter_correct_predictions_training += correct_predictions_training
@@ -222,10 +225,9 @@ def main(unused_argv):
                     FLAGS.print_every_step * FLAGS.batch_size * (SENTENCE_LENGTH - 1))
                 loss_avg_value_training = tf.reduce_mean(counter_loss_training) / (FLAGS.print_every_step)
                 # [Epoch/Iteration]
-                farming_state = utils.generate_tractor_output()
-
-                print(("[%d/%d] [" + str(farming_state) + "] Accuracy: %.3f, Loss: %.3f") % (
-                    epoch, step, accuracy_avg_value_training, loss_avg_value_training.eval(session=sess)))
+                print('Epoch:', epoch, 'it:', i, 'loss:', loss_avg_value_training.eval(session=sess))
+                # print(("[%d/%d] [" + str(farming_state) + "] Accuracy: %.3f, Loss: %.3f") % (
+                #     epoch, step, accuracy_avg_value_training, loss_avg_value_training.eval(session=sess)))
                 counter_correct_predictions_training = 0.0
                 counter_loss_training = 0.0
                 # Report

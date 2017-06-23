@@ -19,6 +19,8 @@ def get_data(path,sample):
     return data
 
 
+
+
 train_path = '../idil/forTraining'
 data = load_train_data(train_path)
 
