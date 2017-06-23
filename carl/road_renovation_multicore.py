@@ -12,7 +12,7 @@ import math
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_path', default='../idil/processed' ,help='skip the feature extraction')
+parser.add_argument('--data_path', default='../idil/processed_val' ,help='skip the feature extraction')
 # parser.add_argument('--data_path', default='../data' ,help='skip the feature extraction') # For test
 parser.add_argument('--n_images', default=1, type=int, help='Should we run on all images')
 parser.add_argument('--n_processes', default=4, type=int, help='How many threads will run the restorate method')
@@ -135,7 +135,7 @@ def main():
     images = os.listdir(args.data_path)
     #images = ['1065.jpg', '1028.jpg','144.jpg','249.jpg','250.jpg','255.jpg','1041.jpg','1051.jpg','1029.jpg']
     # images = ['road_renovation_test_image.png']
-    save_path = '../data/restoration/radius_65_score_0.65' #TODO this is hard coded atm
+    save_path = '../data/restoration/radius_65_score_0.65_val' #TODO this is hard coded atm
     processed_images = os.listdir(save_path)
     images = [x for x in images if not x in processed_images]
     if len(images) is 0:
@@ -153,7 +153,7 @@ def main():
     #Create folders for the different pixel radiuses
     for i, radius in enumerate(pixel_radius_list):
         for j, score in enumerate(scores):
-            dir = os.path.join(args.save_dir,"radius_{}_score_{}".format(radius,score))
+            dir = os.path.join(args.save_dir,"radius_{}_score_{}_val".format(radius,score))
             if os.path.exists(dir) == False:
                 os.mkdir(dir)
 
@@ -193,7 +193,7 @@ def main():
                         y = coord[1]
                         img_new[x,y] = [255,255,255]
 
-                save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}".format(pixel_radius,score))
+                save_dir_path = os.path.join(args.save_dir,"radius_{}_score_{}_val".format(pixel_radius,score))
                 save_img_path = os.path.join(save_dir_path,img_path)
                 imsave(save_img_path,img_new)
 
