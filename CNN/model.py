@@ -6,12 +6,13 @@ class CNN_model:
     def __init__(self):
         self.a = 2
 
-    def get_graph(self,input,batch_size,dropout_rate=0.5):
+    def get_graph(self,input,batch_size,w=400,h=400,dropout_rate=0.5):
 
         d_type = tf.float32
         inp_channels = 3
-        # input = tf.placeholder(tf.float32,shape=(batch_size,w,h,inp_channels))
-        self.input = input
+        # batch_size = 64
+        input = tf.placeholder(tf.float32,shape=(batch_size,w,h,inp_channels))
+        # self.input = input
         padding = 'SAME'
 
         #First Conv layer
@@ -53,23 +54,33 @@ class CNN_model:
         fc1 = tf.nn.dropout(fc1,0.5)
 
         shape = int(np.prod(fc1.get_shape()[1:]))
-        fc2w = tf.Variable(tf.truncated_normal([shape,256], dtype=tf.float32,stddev=1e-1), name='fc2w')
-        fc2b = tf.Variable(tf.constant(1.0, shape=[256], dtype=tf.float32), trainable=True,name='fc2b')
+
+        fc2w = tf.Variable(tf.truncated_normal([shape,w**2*2], dtype=tf.float32,stddev=1e-1), name='fc2w')
+        fc2b = tf.Variable(tf.constant(1.0, shape=[w**2*2], dtype=tf.float32), trainable=True,name='fc2b')
         fc2 = tf.nn.relu(tf.matmul(fc1,fc2w) +fc2b)
         # fc2 = tf.nn.dropout(fc2,0.5)
 
-        self.pred = tf.reshape(fc2,[64,16,16])
+        self.pred = tf.reshape(fc2,[batch_size,w,h,2])
 
-        self.pred = tf.sigmoid(self.pred)
+        # self.pred = tf.sigmoid(self.pred)
         # self.pred = tf.reshape(self.pred,[self.pred.get_shape()[0],w,h])
         return self.pred
 
+    # def weight_variable(shape):
+    #     """weight_variable generates a weight variable of a given shape."""
+    #     initial = tf.truncated_normal(shape, stddev=0.1)
+    #     return tf.Variable(initial)
+    #
+    # def bias_variable(shape):
+    #     """bias_variable generates a bias variable of a given shape."""
+    #     initial = tf.constant(0.1, shape=shape)
+    #     return tf.Variable(initial)
 
 
 
 
 
 
-model = CNN_model()
-model.get_graph(256,256,64)
-a= 2
+# model = CNN_model()
+# preds = model.get_graph(256.0,256.0,64.0)
+# a= 2

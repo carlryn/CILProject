@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 
 # Data directory
 path_train = "../idil/forTraining"
-path_test = "../idil/sentences.test"
 
 # Load data
 
@@ -55,7 +54,7 @@ print("Writing to {}\n".format(FLAGS.model_dir))
 def main(unused_argv):
     # Get input dimensionality. TODO check best way of defining sizes
 
-    training_data, validation_data = utils.load_train_data(path_train, sample=2)
+    training_data, training_labels = utils.load_train_data(path_train,sample=10)
 
     # Placeholder variables are used to change the input to the graph.
     # This is where training samples and labels are fed to the graph.
@@ -64,10 +63,12 @@ def main(unused_argv):
     # input_samples_op = tf.placeholder(tf.int32, shape=[FLAGS.batch_size, SENTENCE_LENGTH],
     #                                   name="input_samples")
     batch_size = FLAGS.batch_size
-    w,h = 256,256
+    w,h = 400,400
     input_samples_op = tf.placeholder(tf.float32, shape=(batch_size,w,h),
                                       name='input_samples')
 
+    labels = tf.placeholder(tf.int32, shape=input_samples_op.get_shape(),
+                            name='labels')
     # Define embedding vectors matrix.
     # define word embedding matrix ( this is trained as part of the model )
     # with tf.variable_scope('one_hot_encoding'):
@@ -89,12 +90,13 @@ def main(unused_argv):
     # Call the function that builds the network.
     # It returns the logits for the batch [batch_size, sentence_len - 1, embedding_dim].
     model = CNN_model()
-    logits = model.get_graph(input_samples_op,batch_size)
+    logits = model.get_graph(input_samples_op,batch_size,w,h)
 
     # Loss calculations: cross-entropy
     with tf.name_scope("cross_entropy_loss"):
         # Takes predictions of the network (logits) and ground-truth labels
         # (input_label_op), and calculates the cross-entropy loss.
+
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
 
     # Accuracy calculations.
@@ -192,17 +194,19 @@ def main(unused_argv):
         # Generate training batches
 
         training_batches = [training_data[i:i+batch_size] for i in range(0,len(training_data),batch_size)]
+        training_batches_labels = [training_labels[i:i+batch_size] for i in range(0,len(training_data),batch_size)]
+
         # Training loop.
         for i,batch_samples in enumerate(training_batches):
             step = tf.train.global_step(sess, global_step)
-
+            batch_labels = training_batches_labels
             if (step % FLAGS.checkpoint_every_step) == 0:
                 ckpt_save_path = saver.save(sess, os.path.join(FLAGS.model_dir, 'model'), global_step)
                 print("Model saved in file: %s" % ckpt_save_path)
 
             # This dictionary maps the batch data (as a numpy array) to the
             # placeholder variables in the graph.
-            feed_dict = {input_samples_op: batch_samples,
+            feed_dict = {input_samples_op: batch_samples,labels: batch_labels,
                          mode: True}
 
             # Run the optimizer to update weights.
@@ -221,8 +225,8 @@ def main(unused_argv):
             # Occasionally print status messages.
             if (step % FLAGS.print_every_step) == 0:
                 # Calculate average training accuracy.
-                accuracy_avg_value_training = counter_correct_predictions_training / (
-                    FLAGS.print_every_step * FLAGS.batch_size * (SENTENCE_LENGTH - 1))
+                # accuracy_avg_value_training = counter_correct_predictions_training / (
+                #     FLAGS.print_every_step * FLAGS.batch_size * (SENTENCE_LENGTH - 1))
                 loss_avg_value_training = tf.reduce_mean(counter_loss_training) / (FLAGS.print_every_step)
                 # [Epoch/Iteration]
                 print('Epoch:', epoch, 'it:', i, 'loss:', loss_avg_value_training.eval(session=sess))
@@ -233,21 +237,21 @@ def main(unused_argv):
                 # Report
                 # Note that accuracy_avg and loss_avg placeholders are defined
                 # just to feed average results to summaries.
-                summary_report = sess.run(summaries_evaluation, feed_dict={accuracy_avg: accuracy_avg_value_training,
-                                                                           loss_avg: loss_avg_value_training.eval(
-                                                                               session=sess)})
-                train_summary_writer.add_summary(summary_report, step)
+                # summary_report = sess.run(summaries_evaluation, feed_dict={accuracy_avg: accuracy_avg_value_training,
+                #                                                            loss_avg: loss_avg_value_training.eval(
+                #                                                                session=sess)})
+                # train_summary_writer.add_summary(summary_report, step)
 
-            if (step % FLAGS.evaluate_every_step) == 0:
-                # Calculate average validation accuracy.
-                (loss_avg_value_validation, accuracy_avg_value_validation) = do_evaluation(sess, validation_data)
-                print("[%d/%d] [We have this shit] Accuracy: %.3f, Loss: %.3f" % (
-                    epoch, step, accuracy_avg_value_validation, loss_avg_value_validation.eval(session=sess)))
-                # Report
-                summary_report = sess.run(summaries_evaluation, feed_dict={accuracy_avg: accuracy_avg_value_validation,
-                                                                           loss_avg: loss_avg_value_validation.eval(
-                                                                               session=sess)})
-                valid_summary_writer.add_summary(summary_report, step)
+            # if (step % FLAGS.evaluate_every_step) == 0:
+            #     # Calculate average validation accuracy.
+            #     (loss_avg_value_validation, accuracy_avg_value_validation) = do_evaluation(sess, validation_data)
+            #     print("[%d/%d] [We have this shit] Accuracy: %.3f, Loss: %.3f" % (
+            #         epoch, step, accuracy_avg_value_validation, loss_avg_value_validation.eval(session=sess)))
+            #     # Report
+            #     # summary_report = sess.run(summaries_evaluation, feed_dict={accuracy_avg: accuracy_avg_value_validation,
+            #     #                                                            loss_avg: loss_avg_value_validation.eval(
+            #     #                                                                session=sess)})
+            #     # valid_summary_writer.add_summary(summary_report, step)
 
 
 if __name__ == '__main__':
