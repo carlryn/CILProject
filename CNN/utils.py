@@ -2,8 +2,9 @@ import numpy as np
 import os
 from skimage.io import imread,imsave
 
-start = 100
-end = 120
+inp_window_size = 100
+out_window = 25
+img_shape = 400
 
 def load_train_data(train_path,sample=None):
     data, data_labels = get_data(train_path,sample)
@@ -16,35 +17,76 @@ def get_data(path,sample):
     for i,img_name in enumerate(images_names):
         img = imread(os.path.join(path,img_name))
         cut = img.shape[1] / 2
-        img_1 = img[:,:600,:][100:120,100:120,:]
-        img_2 = img[:,600:,:][100:120,100:120,:]
+        img_1 = img[:,:img_shape,:]
+        img_2 = img[:,img_shape:,:]
+        center_index = out_window // 2
+        inp_half = inp_window_size / 2
+
+        for h_pos in range(out_window,img_shape,out_window):
+            h_center = h_pos - center_index
+            h_beg, h_end = h_center - inp_half, h_center + inp_half
+            for w_pos in range(out_window,img_shape,out_window):
+                #Find center index
+                w_center = w_pos - center_index
+                w_beg, w_end = w_center - inp_half, w_center + inp_half
+                inp_window = get_window(img,h_beg,h_end,w_beg,w_end)
+
+                # Create input window
 
         w,h = img_2.shape[:-1]
+        # img_label = fix_img_label(img_2)
         img_label = np.zeros((w,h))
         for j in range(len(img_2)):
-            row = img_2[i,j]
+            row = img_2[j]
             for k in range(len(row)):
                 dp = row[k]
-                if dp.all() > 10:
-                    img_label[i,j] = 1
+                if dp[0] > 10:
+                    img_label[j,k] = 1
                 else:
-                    img_label[i,j] = 0
+                    img_label[j,k] = 0
 
         data.append(img_1)
         data_labels.append(img_label)
-        # data[i] = data[i][100:-100,100:-100,:]
-        # data_labels[i] = data_labels[i][100:-100,100:-100,:]
-        # data[i] = data[i]
-        # data_labels[i] = data_labels[i]
-
-        # for j in range(len(data_labels[i])):
-        #     row = data_labels[i][j]
-        #     for k in range(len(row)):
-        #         dp = row[k]
         if sample is not None:
             if sample < i:
                 break
     return data,data_labels
+
+'''
+This will pad img with zeros to create a matrix shaped (window_size,window_size)
+'''
+def get_window(img,h_start,h_end,w_start,w_end):
+    h,w = img.shape
+    h_pad = 0
+    w_pad = 0
+
+    if h_start < 0:
+        h_pad = np.abs(h_start)
+
+    if w_start < 0:
+        w_pad = np.abs(w_start)
+
+    if ( w_start < 0 or h_start < 0 ) and (w_end < w) and (h_end < h):
+
+        # Upper left
+        if w_start < 0 and h_start < 0:
+            h_pad_matr = np.zeros((h_pad,inp_window_size-w_pad))
+            w_pad_matr = np.zeros((inp_window_size,w_pad))
+
+        # Upper
+        elif h_start < 0 and w_start >= 0:
+            h_pad_matr = np.zeros((h_pad,inp_window_size))
+
+        # Left
+        elif h_start >= 0 and w_start < 0:
+            w_pad_matr = np.zeros((inp_window_size,w_pad))
+
+    if (h_end >= h  or w_end >=w) and (h_start >= 0) and (w_start >= 0):
+
+        # Down right
+        if h_end >= h and w_end >= w:
+            h_pad_matr = np.zeros((inp_window_size))
+
 
 
 def load_for_testing(path,path_gt,sample = None):
@@ -94,7 +136,7 @@ def fix_img_label(img_label):
         row = img_label[j]
         for k in range(len(row)):
             dp = row[k]
-            if dp.all() > 10:
+            if dp > 10:
                 img_label_fix[j,k] = 1
             else:
                 img_label_fix[j,k] = 0

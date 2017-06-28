@@ -16,8 +16,8 @@ tf.flags.DEFINE_string("save_path","../data/predicted","Where to output the imag
 tf.flags.DEFINE_string("path_gt","../data/training/groundtruth", "Path to groundtruth")
 
 # log params
-tf.flags.DEFINE_string("log_dir", 'runs/1498652410', "Checkpoint directory (i.e. ../runs/1493459028")
-tf.flags.DEFINE_string("graph_file", 'runs/1498652410/model-600.meta', "Name of meta graph file (i.e. model-400.meta)")
+tf.flags.DEFINE_string("log_dir", 'runs/1498673564', "Checkpoint directory (i.e. ../runs/1493459028")
+tf.flags.DEFINE_string("graph_file", 'runs/1498673564/model-3000.meta', "Name of meta graph file (i.e. model-400.meta)")
 
 tf.flags.DEFINE_string("device", 'CPU', "CPU or GPU to run on")
 
@@ -60,7 +60,7 @@ def main(unused_argv):
             feed_dict = {input_samples_op: batch_samples}
             # loss_out = sess.run(loss, feed_dict=feed_dict)
             predictions = sess.run(last_pred, feed_dict=feed_dict)
-            n,w,h,channels = predictions.shape
+            n,w,h = predictions.shape
             img = np.zeros((w,h))
             for i in range(FLAGS.batch_size):
                 for j in range(w):

@@ -54,7 +54,7 @@ print("Writing to {}\n".format(FLAGS.model_dir))
 def main(unused_argv):
     # Get input dimensionality. TODO check best way of defining sizes
 
-    training_data, training_labels = utils.load_train_data(path_train,sample=10)
+    training_data, training_labels = utils.load_train_data(path_train,sample=100)
 
     # Placeholder variables are used to change the input to the graph.
     # This is where training samples and labels are fed to the graph.
@@ -67,7 +67,7 @@ def main(unused_argv):
     input_samples_op = tf.placeholder(tf.float32, shape=(batch_size,w,h,channels),
                                       name='input_samples')
 
-    labels = tf.placeholder(tf.int32, shape=input_samples_op.get_shape()[:-1],
+    labels = tf.placeholder(tf.float32, shape=input_samples_op.get_shape()[:-1],
                             name='labels')
     # Define embedding vectors matrix.
     # define word embedding matrix ( this is trained as part of the model )
@@ -98,7 +98,7 @@ def main(unused_argv):
     #     # (input_label_op), and calculates the cross-entropy loss.
     #
     #     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels,name='loss')
-    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels, name='loss')
+    loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels, name='loss')
 
     # Accuracy calculations.
     # with tf.name_scope("accuracy"):
