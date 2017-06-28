@@ -11,14 +11,15 @@ class CNN_model:
         d_type = tf.float32
         inp_channels = 3
         # batch_size = 64
-        input = tf.placeholder(tf.float32,shape=(batch_size,w,h,inp_channels))
+        # input = tf.placeholder(tf.float32,shape=(batch_size,w,h,inp_channels))
         # self.input = input
         padding = 'SAME'
 
         #First Conv layer
         out_channels = 64
         b = 16
-        filter_1 = tf.Variable(initial_value=tf.random_normal([b,b,inp_channels,out_channels]))
+        filter_1 = tf.Variable(initial_value=tf.random_normal([b,b,inp_channels,out_channels]),
+                               name='filter_1')
         stride_1 = [1,4,4,1]
         conv_1 = tf.nn.conv2d(input,filter_1,stride_1,padding)
         conv_1 = tf.nn.relu(conv_1)
@@ -31,7 +32,7 @@ class CNN_model:
         #Second Conv layer
         stride_conv = [1,1,1,1]
         b = 2
-        filter_2 = tf.Variable(initial_value=tf.random_normal([b,b,64,112]))
+        filter_2 = tf.Variable(initial_value=tf.random_normal([b,b,64,112]),name='filter_2')
         conv_2 = tf.nn.conv2d(pool1,filter_2,stride_conv,padding)
         conv_2 = tf.nn.relu(conv_2)
 
@@ -39,7 +40,7 @@ class CNN_model:
         #Third Conv layer
         stride_conv = [1,1,1,1]
         b = 3
-        filter_3 = tf.Variable(initial_value=tf.random_normal([b,b,112,80]))
+        filter_3 = tf.Variable(initial_value=tf.random_normal([b,b,112,80]),name='filter_3')
         conv_3 = tf.nn.conv2d(conv_2,filter_3,stride_conv,padding)
 
         shape = int(np.prod(conv_3.get_shape()[1:]))
@@ -47,7 +48,7 @@ class CNN_model:
 
         fc1w = tf.Variable(tf.truncated_normal([shape, 4096], dtype=tf.float32, stddev=1e-1), name='fc1w')
         fc1b = tf.Variable(tf.constant(1.0, shape=[4096], dtype=tf.float32),
-                           trainable=True, name='biases')
+                           trainable=True, name='fc1b')
 
         fc1 = tf.nn.bias_add(tf.matmul(conv_3_flat, fc1w), fc1b)
         fc1 = tf.nn.relu(fc1)
@@ -60,7 +61,7 @@ class CNN_model:
         fc2 = tf.nn.relu(tf.matmul(fc1,fc2w) +fc2b)
         # fc2 = tf.nn.dropout(fc2,0.5)
 
-        self.pred = tf.reshape(fc2,[batch_size,w,h,2])
+        self.pred = tf.reshape(fc2,[batch_size,w,h,2],name='pred')
 
         # self.pred = tf.sigmoid(self.pred)
         # self.pred = tf.reshape(self.pred,[self.pred.get_shape()[0],w,h])

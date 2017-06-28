@@ -34,7 +34,7 @@ tf.flags.DEFINE_integer("evaluate_every_step", 1000,
 # Log Parameters
 tf.flags.DEFINE_integer("print_every_step", 200,
                         "Print training details after this many steps/iterations (i.e., batches) (default: 10)")
-tf.flags.DEFINE_integer("checkpoint_every_step", 1000,
+tf.flags.DEFINE_integer("checkpoint_every_step", 200,
                         "Save model after this many steps/iterations (i.e., batches) (default: 1000)")
 tf.flags.DEFINE_string("log_dir", "./runs/", "Output directory (default: './runs/')")
 
@@ -63,11 +63,11 @@ def main(unused_argv):
     # input_samples_op = tf.placeholder(tf.int32, shape=[FLAGS.batch_size, SENTENCE_LENGTH],
     #                                   name="input_samples")
     batch_size = FLAGS.batch_size
-    w,h = 400,400
-    input_samples_op = tf.placeholder(tf.float32, shape=(batch_size,w,h),
+    w,h,channels = training_data[0].shape
+    input_samples_op = tf.placeholder(tf.float32, shape=(batch_size,w,h,channels),
                                       name='input_samples')
 
-    labels = tf.placeholder(tf.int32, shape=input_samples_op.get_shape(),
+    labels = tf.placeholder(tf.int32, shape=input_samples_op.get_shape()[:-1],
                             name='labels')
     # Define embedding vectors matrix.
     # define word embedding matrix ( this is trained as part of the model )
@@ -93,11 +93,12 @@ def main(unused_argv):
     logits = model.get_graph(input_samples_op,batch_size,w,h)
 
     # Loss calculations: cross-entropy
-    with tf.name_scope("cross_entropy_loss"):
-        # Takes predictions of the network (logits) and ground-truth labels
-        # (input_label_op), and calculates the cross-entropy loss.
-
-        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
+    # with tf.name_scope("cross_entropy_loss"):
+    #     # Takes predictions of the network (logits) and ground-truth labels
+    #     # (input_label_op), and calculates the cross-entropy loss.
+    #
+    #     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels,name='loss')
+    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels, name='loss')
 
     # Accuracy calculations.
     # with tf.name_scope("accuracy"):
@@ -199,7 +200,13 @@ def main(unused_argv):
         # Training loop.
         for i,batch_samples in enumerate(training_batches):
             step = tf.train.global_step(sess, global_step)
-            batch_labels = training_batches_labels
+            if (step % FLAGS.checkpoint_every_step) == 0:
+                ckpt_save_path = saver.save(sess, os.path.join(FLAGS.model_dir, 'model'), global_step)
+                print("Model saved in file: %s" % ckpt_save_path, flush=True)
+
+            batch_samples = np.asarray(batch_samples)
+            batch_labels = training_batches_labels[i]
+            batch_labels = np.asarray(batch_labels)
             if (step % FLAGS.checkpoint_every_step) == 0:
                 ckpt_save_path = saver.save(sess, os.path.join(FLAGS.model_dir, 'model'), global_step)
                 print("Model saved in file: %s" % ckpt_save_path)
@@ -212,11 +219,11 @@ def main(unused_argv):
             # Run the optimizer to update weights.
             # Note that "train_op" is responsible from updating network weights.
             # Only the operations that are fed are evaluated.
-            train_summary, correct_predictions_training, loss_training, _ = sess.run(
+            train_summary, loss_training,_ = sess.run(
                 [summaries_training, loss, train_op], feed_dict=feed_dict)
 
             # Update counters.
-            counter_correct_predictions_training += correct_predictions_training
+            # counter_correct_predictions_training += correct_predictions_training
             counter_loss_training += loss_training
 
             # Write summary data.
