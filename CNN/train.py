@@ -25,15 +25,15 @@ path_label = "../data/training/groundtruth"
 tf.flags.DEFINE_float("dropout_rate", 0.5, "Dropout rate (default: 0.5)")
 
 # Training Parameters
-tf.flags.DEFINE_integer("learning_rate", 1e-3, "learning rate (default: 1e-3)")
-tf.flags.DEFINE_integer("batch_size", 12, "Batch Size")
+tf.flags.DEFINE_integer("learning_rate", 1e-4, "learning rate (default: 1e-3)")
+tf.flags.DEFINE_integer("batch_size", 2, "Batch Size")
 tf.flags.DEFINE_integer("validation_size", 0.3, "Validation set size as % of initial dataset")
 tf.flags.DEFINE_integer("num_epochs", 100, "Number of full passess over whole training data (default: 100)")
 tf.flags.DEFINE_integer("evaluate_every_step", 1000,
                         "Evaluate model on validation set after this many steps/iterations (i.e., batches) (default: 500)")
 
 # Log Parameters
-tf.flags.DEFINE_integer("print_every_step", 200,
+tf.flags.DEFINE_integer("print_every_step", 1,
                         "Print training details after this many steps/iterations (i.e., batches) (default: 10)")
 tf.flags.DEFINE_integer("checkpoint_every_step", 200,
                         "Save model after this many steps/iterations (i.e., batches) (default: 1000)")

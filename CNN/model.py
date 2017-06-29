@@ -1,6 +1,13 @@
 import tensorflow as tf
 import numpy as np
 
+
+def bias_variable(shape):
+    """bias_variable generates a bias variable of a given shape."""
+    initial = tf.constant(0.1, shape=shape)
+    return tf.Variable(initial)
+
+
 class CNN_model:
 
     def __init__(self):
@@ -22,7 +29,8 @@ class CNN_model:
                                name='filter_1')
         stride_1 = [1,4,4,1]
         conv_1 = tf.nn.conv2d(input,filter_1,stride_1,padding)
-        conv_1 = tf.nn.relu(conv_1)
+        bias_1 = bias_variable([out_channels])
+        conv_1 = tf.nn.relu(conv_1 + bias_1)
 
         # First Pool layer
         stride_pool = [1,1,1,1]
@@ -34,7 +42,8 @@ class CNN_model:
         b = 2
         filter_2 = tf.Variable(initial_value=tf.random_normal([b,b,64,112]),name='filter_2')
         conv_2 = tf.nn.conv2d(pool1,filter_2,stride_conv,padding)
-        conv_2 = tf.nn.relu(conv_2)
+        bias_2 = bias_variable([112])
+        conv_2 = tf.nn.relu(conv_2 + bias_2)
 
 
         #Third Conv layer
@@ -42,6 +51,8 @@ class CNN_model:
         b = 3
         filter_3 = tf.Variable(initial_value=tf.random_normal([b,b,112,80]),name='filter_3')
         conv_3 = tf.nn.conv2d(conv_2,filter_3,stride_conv,padding)
+        bias_3 = bias_variable([80])
+        conv_3 = tf.nn.relu(conv_3 + bias_3)
 
         shape = int(np.prod(conv_3.get_shape()[1:]))
         conv_3_flat = tf.reshape(conv_3, [-1, shape])
@@ -67,15 +78,9 @@ class CNN_model:
         # self.pred = tf.reshape(self.pred,[self.pred.get_shape()[0],w,h])
         return self.pred
 
-    # def weight_variable(shape):
-    #     """weight_variable generates a weight variable of a given shape."""
-    #     initial = tf.truncated_normal(shape, stddev=0.1)
-    #     return tf.Variable(initial)
-    #
-    # def bias_variable(shape):
-    #     """bias_variable generates a bias variable of a given shape."""
-    #     initial = tf.constant(0.1, shape=shape)
-    #     return tf.Variable(initial)
+
+
+
 
 
 
