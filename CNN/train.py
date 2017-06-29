@@ -57,7 +57,7 @@ def main(unused_argv):
 
     training_data, training_labels = utils.load_train_data(path_train,
                                                            path_label,
-                                                           sample=100)
+                                                           sample=None)
 
     # Placeholder variables are used to change the input to the graph.
     # This is where training samples and labels are fed to the graph.
