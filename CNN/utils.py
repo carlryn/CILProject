@@ -1,107 +1,54 @@
 import numpy as np
 import os
 from skimage.io import imread,imsave
+from glob import glob
+import math
+#CIL_data/aerialOrg/train
+#CIL_data/mapsOrg/train
+def set_data():
+    #to divide train to train and validation
+    val = 10
+    train = 90
+    if not os.path.isdir(os.path.join("aerialOrg","val")):
+        os.mkdir(os.path.join("aerialOrg","val"))
+        os.mkdir(os.path.join("mapOrg", "val"))
 
-start = 100
-end = 120
+    aerial_name = glob(os.path.join("aerialOrg","train","*.jpg"))
+    map_name = glob(os.path.join("mapOrg","train","*.jpg"))
+    print(aerial_name)
+    trainNum = math.floor((len(aerial_name)/3)*train/100)
+    print(trainNum)
+    print(range(trainNum,100))
+    for ind in range(trainNum,100):
+        for thr in [0,1,2]:
+            path = os.path.join("mapOrg","train",str(ind+100*thr)+".jpg")
+            path_aerial = os.path.join("aerialOrg","train",str(ind+100*thr)+".jpg")
+            im = imread(path_aerial)
+            im_map = imread(path)
+            print(os.path.join("aerialOrg","val","%s.jpg") % str((ind-trainNum)*3+thr))
+            imsave(os.path.join("aerialOrg","val","%s.jpg") % str((ind-trainNum)*3+thr),im)
+            imsave(os.path.join("mapOrg", "val", "%s.jpg") % str((ind-trainNum)*3+thr), im_map)
+            os.remove(os.path.join("aerialOrg","train","%s.jpg") % str(ind+100*thr))
+            os.remove(os.path.join("mapOrg", "train", "%s.jpg") % str(ind + 100 * thr))
 
-def load_train_data(train_path,sample=None):
-    data, data_labels = get_data(train_path,sample)
-    return data, data_labels
+def getPatches(path,window_size,  output_size):
+    #all patches for one image
+    step=(window_size-output_size)/2
+    im = imread(path)
+    img_dim = np.min(im.shape)
+    path_num = math.floor((img_dim-window_size)/output_size)+1
+    x = [window_size*i for i in range(0,path_num)]
+    y = x
+    for i in x:
+        for j in y:
+            path = im[i:i+window_size,j:j+window_size,:]
 
-def get_data(path,sample):
-    images_names = os.listdir(path)
-    data = []
-    data_labels =[]
-    for i,img_name in enumerate(images_names):
-        img = imread(os.path.join(path,img_name))
-        cut = img.shape[1] / 2
-        img_1 = img[:,:600,:][100:120,100:120,:]
-        img_2 = img[:,600:,:][100:120,100:120,:]
-
-        w,h = img_2.shape[:-1]
-        img_label = np.zeros((w,h))
-        for j in range(len(img_2)):
-            row = img_2[i,j]
-            for k in range(len(row)):
-                dp = row[k]
-                if dp.all() > 10:
-                    img_label[i,j] = 1
-                else:
-                    img_label[i,j] = 0
-
-        data.append(img_1)
-        data_labels.append(img_label)
-        # data[i] = data[i][100:-100,100:-100,:]
-        # data_labels[i] = data_labels[i][100:-100,100:-100,:]
-        # data[i] = data[i]
-        # data_labels[i] = data_labels[i]
-
-        # for j in range(len(data_labels[i])):
-        #     row = data_labels[i][j]
-        #     for k in range(len(row)):
-        #         dp = row[k]
-        if sample is not None:
-            if sample < i:
-                break
-    return data,data_labels
-
-
-def load_for_testing(path,path_gt,sample = None):
-    images_to_predict = get_img_list(path,sample)
-    images_gt = get_img_list(path_gt,sample)
-    return np.asarray(images_to_predict), np.asarray(images_gt), os.listdir(path)
-
-
-def get_img_list(path,sample):
-    images_dir = os.listdir(path)
-
-    images = []
-    for i, img_name in enumerate(images_dir):
-        if sample is not None:
-            if i >= sample:
-                break
-        img = imread(os.path.join(path, img_name))
-        img = get_patch(start, end, img)
-        images.append(img)
-    if sample is not None:
-        return images
-    return images[:sample]
-
-def get_patch(start,end,img):
-    patch_size = end - start
-    img = img[start:end,start:end]
-    return img
-
-def save_image(save_path,orig_images,predicted_imgs, img_gts,img_names):
-
-    for i,img in enumerate(predicted_imgs):
-        img_gt = img_gts[i]
-        orig_img = orig_images[i]
-        img_gt = fix_img_label(img_gt)
-        # to_save = np.concatenate((img,img_gt,orig_img),axis=1)
-        ones = np.ones((img.shape[0],1))
-        to_save = np.concatenate((img,ones,img_gt),axis=1)
-        img_name = img_names[i]
-        save_img_path = os.path.join(save_path,img_name)
-        imsave(save_img_path,to_save)
-
-
-def fix_img_label(img_label):
-    w,h = img_label.shape
-    img_label_fix = np.zeros((w, h))
-    for j in range(len(img_label)):
-        row = img_label[j]
-        for k in range(len(row)):
-            dp = row[k]
-            if dp.all() > 10:
-                img_label_fix[j,k] = 1
-            else:
-                img_label_fix[j,k] = 0
-
-    return img_label_fix
-#
-# train_path = '../idil/forTraining'
-# data,labels = load_train_data(train_path)
-#
-# a = 2
+def getBatch(i,j,window_size,path,path_label):
+    image_patchs = []
+    image_labels = []
+    for ind,im_path in enumerate(path):
+        im = imread(im_path)
+        im_label = imread(path_label[ind])
+        image_patchs.append(im[i:i+window_size,j:j+window_size,:])
+        image_labels.append(im_label[i:i + window_size, j:j + window_size, :]/255.)
+    return image_patchs, image_labels
