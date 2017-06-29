@@ -6,7 +6,7 @@ class CNN_model:
     def __init__(self):
         self.a = 2
 
-    def get_graph(self,input,batch_size,w=400,h=400,dropout_rate=0.5):
+    def get_graph(self,input,batch_size,w=100,h=100,output_shape=25,dropout_rate=0.5):
 
         d_type = tf.float32
         inp_channels = 3
@@ -56,12 +56,12 @@ class CNN_model:
 
         shape = int(np.prod(fc1.get_shape()[1:]))
 
-        fc2w = tf.Variable(tf.truncated_normal([shape,w**2], dtype=tf.float32,stddev=1e-1), name='fc2w')
-        fc2b = tf.Variable(tf.constant(1.0, shape=[w**2], dtype=tf.float32), trainable=True,name='fc2b')
+        fc2w = tf.Variable(tf.truncated_normal([shape,output_shape**2], dtype=tf.float32,stddev=1e-1), name='fc2w')
+        fc2b = tf.Variable(tf.constant(1.0, shape=[output_shape**2], dtype=tf.float32), trainable=True,name='fc2b')
         fc2 = tf.nn.relu(tf.matmul(fc1,fc2w) +fc2b)
         # fc2 = tf.nn.dropout(fc2,0.5)
 
-        self.pred = tf.reshape(fc2,[batch_size,w,h],name='pred')
+        self.pred = tf.reshape(fc2,[batch_size,output_shape,output_shape],name='pred')
 
         # self.pred = tf.sigmoid(self.pred)
         # self.pred = tf.reshape(self.pred,[self.pred.get_shape()[0],w,h])

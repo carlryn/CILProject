@@ -26,7 +26,7 @@ tf.flags.DEFINE_float("dropout_rate", 0.5, "Dropout rate (default: 0.5)")
 
 # Training Parameters
 tf.flags.DEFINE_integer("learning_rate", 1e-3, "learning rate (default: 1e-3)")
-tf.flags.DEFINE_integer("batch_size", 2, "Batch Size")
+tf.flags.DEFINE_integer("batch_size", 12, "Batch Size")
 tf.flags.DEFINE_integer("validation_size", 0.3, "Validation set size as % of initial dataset")
 tf.flags.DEFINE_integer("num_epochs", 100, "Number of full passess over whole training data (default: 100)")
 tf.flags.DEFINE_integer("evaluate_every_step", 1000,
@@ -67,10 +67,11 @@ def main(unused_argv):
     #                                   name="input_samples")
     batch_size = FLAGS.batch_size
     w,h,channels = training_data[0].shape
+    output_shape = 25
     input_samples_op = tf.placeholder(tf.float32, shape=(batch_size,w,h,channels),
                                       name='input_samples')
 
-    labels = tf.placeholder(tf.float32, shape=input_samples_op.get_shape()[:-1],
+    labels = tf.placeholder(tf.float32, shape=(batch_size,25,25),
                             name='labels')
     # Define embedding vectors matrix.
     # define word embedding matrix ( this is trained as part of the model )
@@ -93,7 +94,7 @@ def main(unused_argv):
     # Call the function that builds the network.
     # It returns the logits for the batch [batch_size, sentence_len - 1, embedding_dim].
     model = CNN_model()
-    logits = model.get_graph(input_samples_op,batch_size,w,h)
+    logits = model.get_graph(input_samples_op,batch_size,w,h,output_shape)
 
     # Loss calculations: cross-entropy
     # with tf.name_scope("cross_entropy_loss"):
