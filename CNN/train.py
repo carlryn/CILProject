@@ -16,7 +16,8 @@ import matplotlib.pyplot as plt
 # details: https://www.tensorflow.org/get_started/get_started
 
 # Data directory
-path_train = "../idil/forTraining"
+path_train = "../data/training/images"
+path_label = "../data/training/groundtruth"
 
 # Load data
 
@@ -54,7 +55,9 @@ print("Writing to {}\n".format(FLAGS.model_dir))
 def main(unused_argv):
     # Get input dimensionality. TODO check best way of defining sizes
 
-    training_data, training_labels = utils.load_train_data(path_train,sample=100)
+    training_data, training_labels = utils.load_train_data(path_train,
+                                                           path_label,
+                                                           sample=100)
 
     # Placeholder variables are used to change the input to the graph.
     # This is where training samples and labels are fed to the graph.
