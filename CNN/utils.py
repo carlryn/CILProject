@@ -37,6 +37,7 @@ def get_data(path,sample=None):
                 window = img_padded[j:j+100,k:k+100]
                 data.append(window)
 
+
     return data
 
 
