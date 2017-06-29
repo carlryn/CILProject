@@ -103,6 +103,7 @@ def main(unused_argv):
     #
     #     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels,name='loss')
     loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels, name='loss')
+    loss = tf.reduce_mean(loss)
 
     # Accuracy calculations.
     # with tf.name_scope("accuracy"):
@@ -148,11 +149,10 @@ def main(unused_argv):
         optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
         gradients, v = zip(*optimizer.compute_gradients(loss))
 
-        # TODO need to add grad clippingi
         clipped_gradients, _ = tf.clip_by_global_norm(gradients, 10)
-        train_op = optimizer.apply_gradients(zip(clipped_gradients, v),
-                                             global_step=global_step)
-
+        train_op = optimizer.apply_gradients(zip(clipped_gradients, v), global_step=global_step)
+        # train_op = tf.train.AdamOptimizer(FLAGS.learning_rate).minimize(loss)
+        t_vars = tf.trainable_variables()
     # For saving/restoring the model.
     # Save important ops by adding them into the collection.
     # Needed to to evaluate our model on the test data after training.
