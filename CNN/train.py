@@ -26,7 +26,7 @@ tf.flags.DEFINE_float("dropout_rate", 0.5, "Dropout rate (default: 0.5)")
 
 # Training Parameters
 tf.flags.DEFINE_integer("learning_rate", 1e-4, "learning rate (default: 1e-3)")
-tf.flags.DEFINE_integer("batch_size", 12, "Batch Size")
+tf.flags.DEFINE_integer("batch_size", 24, "Batch Size")
 tf.flags.DEFINE_integer("validation_size", 0.3, "Validation set size as % of initial dataset")
 tf.flags.DEFINE_integer("num_epochs", 100, "Number of full passess over whole training data (default: 100)")
 tf.flags.DEFINE_integer("evaluate_every_step", 1000,

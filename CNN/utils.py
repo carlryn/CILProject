@@ -34,7 +34,6 @@ def get_data(path,sample=None):
                     break
             for k in range(0,len(img),out_window):
                 window = img_padded[j:j+inp_window_size,k:k+inp_window_size]
-                window = window / 255.0
                 data.append(window)
 
     return data
@@ -49,7 +48,7 @@ def get_labels(path,sample=None):
                 if len(data) > sample:
                     break
             for k in range(0, len(img), out_window):
-                window = img[j:j + out_window, k:k + out_window]
+                window = img[j:j + out_window, k:k + out_window] / 255
                 data.append(window)
 
     return data

@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 # details: https://www.tensorflow.org/get_started/get_started
 
 # Data directory
-path_train = "../data/windows"
-path_label = "../data/training/groundtruth"
+path_train = "../data/windows/images"
+path_label = "../data/windows/groundtruth"
 path_pretrained_model ="../pretrained_models/vgg19.py"
 # Load data
 

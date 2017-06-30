@@ -27,7 +27,15 @@ def get_data(path,sample=None):
         full_path = os.path.join(path, img_name)
         img = skimage.io.imread(full_path)
         data.append(load_image(img))
-
+        # for j in range(0, len(img), out_window):
+        #     if sample is not None:
+        #         if len(data) > sample:
+        #             break
+        #     for k in range(0, len(img), out_window):
+        #         window = img[j:j + out_window, k:k + out_window]
+        #         window = load_image(window)
+        #         imsave('../data/windows/images/{}_{}.jpg'.format(img_name,k),window)
+        # print(i)
     print("Get data done")
     return data
 
@@ -38,13 +46,17 @@ def get_labels(path,sample=None):
     data = []
     for i,img_name in enumerate(images_names):
         img = imread(os.path.join(path,img_name))
-        for j in range(0, len(img), out_window):
-            if sample is not None:
-                if len(data) > sample:
-                    break
-            for k in range(0, len(img), out_window):
-                window = img[j:j + out_window, k:k + out_window]
-                data.append(window)
+        data.append(img)
+
+        # for j in range(0, len(img), out_window):
+        #     if sample is not None:
+        #         if len(data) > sample:
+        #             break
+        #     for k in range(0, len(img), out_window):
+        #         window = img[j:j + out_window, k:k + out_window]
+        #         window_n = window/ 255.0
+        #         imsave('../data/windows/groundtruth/{}_{}.jpg'.format(img_name, k), window_n)
+        #         data.append(window)
 
 
 
