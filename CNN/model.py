@@ -32,7 +32,7 @@ class CNN_model:
         bias_1 = bias_variable([out_channels])
         conv_1 = tf.nn.relu(conv_1 + bias_1)
 
-        # First Pool layer
+        #First Pool layer
         stride_pool = [1,1,1,1]
         ksize = [1,2,2,1]
         pool1 = tf.nn.max_pool(conv_1,ksize,stride_pool,padding)
@@ -44,6 +44,11 @@ class CNN_model:
         conv_2 = tf.nn.conv2d(pool1,filter_2,stride_conv,padding)
         bias_2 = bias_variable([112])
         conv_2 = tf.nn.relu(conv_2 + bias_2)
+
+        # #Sec Pool layer
+        # stride_pool = [1,1,1,1]
+        # ksize = [1,2,2,1]
+        # pool2 = tf.nn.max_pool(conv_2,ksize,stride_pool,padding)
 
 
         #Third Conv layer

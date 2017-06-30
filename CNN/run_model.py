@@ -10,8 +10,7 @@ tf.flags.DEFINE_integer("experiment", 0, "0: For training word embeddings; 1: Us
 
 # data params
 tf.flags.DEFINE_string("test_file_path", "../data/training/images", "Path to the testing data")
-tf.flags.DEFINE_string("train_file_path", "../data/sentences.train", "Path to the training data")
-tf.flags.DEFINE_integer("batch_size", 2, "Batch size")
+tf.flags.DEFINE_integer("batch_size", 12, "Batch size")
 tf.flags.DEFINE_string("save_path","../data/predicted","Where to output the images")
 tf.flags.DEFINE_string("path_gt","../data/training/groundtruth", "Path to groundtruth")
 

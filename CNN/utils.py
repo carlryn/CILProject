@@ -4,7 +4,6 @@ from skimage.io import imread,imsave
 
 inp_window_size = 100
 out_window = 25
-img_shape = 400
 
 def load_train_data(train_path,train_path_label,sample=None):
     data = get_data(train_path,sample)
@@ -34,7 +33,8 @@ def get_data(path,sample=None):
                 if len(data) > sample:
                     break
             for k in range(0,len(img),out_window):
-                window = img_padded[j:j+100,k:k+100]
+                window = img_padded[j:j+inp_window_size,k:k+inp_window_size]
+                window = window / 255.0
                 data.append(window)
 
     return data
@@ -49,7 +49,7 @@ def get_labels(path,sample=None):
                 if len(data) > sample:
                     break
             for k in range(0, len(img), out_window):
-                window = img[j:j + 25, k:k + 25]
+                window = img[j:j + out_window, k:k + out_window]
                 data.append(window)
 
     return data
