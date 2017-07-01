@@ -91,7 +91,7 @@ class Vgg19:
         self.prob = tf.nn.softmax(self.fc8, name="prob")
 
         self.data_dict = None
-        self.pred = tf.reshape(self.fc8,(batch_size,output_shape,output_shape))
+        self.pred = tf.reshape(self.fc8,(batch_size,output_shape,output_shape),name='predictions')
         return self.pred
 
     def avg_pool(self, bottom, name):
