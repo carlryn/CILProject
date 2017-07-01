@@ -8,6 +8,9 @@ out_window = 25
 def load_train_data(train_path,train_path_label,sample=None):
     data = get_data(train_path,sample)
     data_labels = get_labels(train_path_label,sample)
+    permute = np.random.permutation(len(data))
+    data = list(np.asarray(data)[permute])
+    data_label = list(np.asarray(data_labels)[permute])
     return data, data_labels
 
 def get_data(path,sample=None):

@@ -39,7 +39,7 @@ class CNN_model:
 
         #Second Conv layer
         stride_conv = [1,1,1,1]
-        b = 2
+        b = 4
         filter_2 = tf.Variable(initial_value=tf.random_normal([b,b,64,112]),name='filter_2')
         conv_2 = tf.nn.conv2d(pool1,filter_2,stride_conv,padding)
         bias_2 = bias_variable([112])

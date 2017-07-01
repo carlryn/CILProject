@@ -24,44 +24,43 @@ def get_data(path,sample=None):
     images_names = os.listdir(path)
     data = []
     for i,img_name in enumerate(images_names):
-        full_path = os.path.join(path, img_name)
-        img = skimage.io.imread(full_path)
-        data.append(load_image(img))
-        # for j in range(0, len(img), out_window):
-        #     if sample is not None:
-        #         if len(data) > sample:
-        #             break
-        #     for k in range(0, len(img), out_window):
-        #         window = img[j:j + out_window, k:k + out_window]
-        #         window = load_image(window)
-        #         imsave('../data/windows/images/{}_{}.jpg'.format(img_name,k),window)
-        # print(i)
-    print("Get data done")
+        img = imread(os.path.join(path,img_name))
+        w,h,_ = img.shape
+        center_index = (out_window // 2) + 1
+        inp_half = (inp_window_size // 2)
+        diff = np.abs(center_index - inp_half)
+        top_bot = np.zeros((diff,w+diff+diff,_))
+        left_right = np.zeros((h,diff,_))
+        extra_right = np.zeros((h+diff+diff,1,_)) # These are ugly
+        extra_bot = np.zeros((1,w+diff+diff+1,_))   # These are ugly
+        img_padded = np.concatenate((left_right,img,left_right),axis=1)
+        img_padded = np.concatenate((top_bot,img_padded,top_bot))
+        img_padded = np.concatenate((img_padded,extra_right),axis=1)
+        img_padded = np.concatenate((img_padded,extra_bot),axis=0)
+
+        for j in range(0,len(img),out_window):
+            if sample is not None:
+                if len(data) > sample:
+                    break
+            for k in range(0,len(img),out_window):
+                window = img_padded[j:j+inp_window_size,k:k+inp_window_size]
+                data.append(window)
     return data
-
-
 
 def get_labels(path,sample=None):
     images_names = os.listdir(path)
     data = []
     for i,img_name in enumerate(images_names):
         img = imread(os.path.join(path,img_name))
-        data.append(img)
-
-        # for j in range(0, len(img), out_window):
-        #     if sample is not None:
-        #         if len(data) > sample:
-        #             break
-        #     for k in range(0, len(img), out_window):
-        #         window = img[j:j + out_window, k:k + out_window]
-        #         window_n = window/ 255.0
-        #         imsave('../data/windows/groundtruth/{}_{}.jpg'.format(img_name, k), window_n)
-        #         data.append(window)
-
-
+        for j in range(0, len(img), out_window):
+            if sample is not None:
+                if len(data) > sample:
+                    break
+            for k in range(0, len(img), out_window):
+                window = img[j:j + out_window, k:k + out_window] / 255
+                data.append(window)
 
     return data
-
 
 def load_image(img):
     # load image
