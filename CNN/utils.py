@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from skimage.io import imread,imsave
+from skimage.io import imread,imsave, imshow
 from glob import glob
 import math
 #CIL_data/aerialOrg/train
@@ -31,24 +31,24 @@ def set_data():
             os.remove(os.path.join("aerialOrg","train","%s.jpg") % str(ind+100*thr))
             os.remove(os.path.join("mapOrg", "train", "%s.jpg") % str(ind + 100 * thr))
 
-def getPatches(path,window_size,  output_size):
-    #all patches for one image
-    step=(window_size-output_size)/2
-    im = imread(path)
-    img_dim = np.min(im.shape)
-    path_num = math.floor((img_dim-window_size)/output_size)+1
-    x = [window_size*i for i in range(0,path_num)]
-    y = x
-    for i in x:
-        for j in y:
-            path = im[i:i+window_size,j:j+window_size,:]
-
-def getBatch(i,j,window_size,path,path_label):
-    image_patchs = []
-    image_labels = []
+def getBatch(i,j,window_size,output_size, path,path_label):
+    im = imread(path[0])
+    num = int((window_size - output_size) / 2)
+    image_patchs = np.zeros((len(path), window_size, window_size,im.shape[2])).astype(int)
+    image_labels = np.zeros((len(path),output_size*output_size)).astype(int)
     for ind,im_path in enumerate(path):
         im = imread(im_path)
+        #pad it with smt that makes more sense
+        im_pad = np.zeros((num*2+im.shape[0], num*2+int(im.shape[0]),im.shape[2])).astype(int)
+        im_pad[num:num+im.shape[0],num:num+im.shape[1],:]=im
         im_label = imread(path_label[ind])
-        image_patchs.append(im[i:i+window_size,j:j+window_size,:])
-        image_labels.append(im_label[i:i + window_size, j:j + window_size, :]/255.)
+        if len(im_label.shape)>2:
+            im_label=im_label[:,:,0]
+            #print "wtf"
+        batch_files_label = np.reshape(im_label[i:i + output_size, j:j + output_size]/255., [1, -1])
+
+        image_patchs[ind]=im_pad[i:i+window_size,j:j+window_size,:]
+        image_labels[ind] = batch_files_label
+        #imsave("a.png", image_patchs[ind])
+        #imsave("b.png",np.reshape(image_labels[ind]*255,[output_size,output_size]))
     return image_patchs, image_labels
