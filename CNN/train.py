@@ -12,7 +12,7 @@ pp = pprint.PrettyPrinter(depth=6)
 os.environ["CUDA_VISIBLE_DEVICES"] = "1" ##os.environ['SGE_GPU']
 
 class CNN(object):
-    def __init__(self, sess, img_height = 400, input_height=128, input_width=128, batch_size=2, output_height=16, output_width=16, input_fname_pattern='*.jpg', checkpoint_dir="checkpoint", sample_dir="samples", name="CIL",dataset=""):
+    def __init__(self, sess, img_height = 400, input_height=128, input_width=128, batch_size=2, output_height=16, output_width=16, input_fname_pattern='*.jpg', checkpoint_dir="checkpoint", sample_dir="samples", name="CIL2",dataset=""):
         self.sess = sess
         self.batch_size = batch_size
         self.img_height = img_height
@@ -32,24 +32,11 @@ class CNN(object):
     def build_model(self): 
         self.inputs = tf.placeholder( tf.float32, [FLAGS.batch_size, self.input_height, self.input_height, 3], name='input')
         self.labels = tf.placeholder( tf.float32, [FLAGS.batch_size, 1], name='output')
-        self.result = tf.placeholder( tf.float32, [FLAGS.batch_size, 1], name='result')
-        x = tf.Variable([1])
-        def label_0():
-          with tf.control_dependencies([tf.assign(x, [0])]):
-            return tf.identity(x)
-        def label_1():
-          with tf.control_dependencies([tf.assign(x, [1])]):
-            return tf.identity(x)        
-        self.model = vgg16(self.batch_size, self.output_height*self.output_height, self.inputs, 'vgg16_weights.npz', self.sess)
-        self.result = tf.reduce_mean(self.model.result, 1)
-        #print df.get_shape()
-        #foreground_threshold =   tf.constant(0.25, shape=[FLAGS.batch_size, 1])
-        #self.result  = tf.cond(df > foreground_threshold, label_1,  label_0)    
-        
+        self.model = vgg16(self.batch_size, 1, self.inputs, 'vgg16_weights.npz', self.sess)
+
         #which loss function to use?
         #try this sometime: tf.nn.weighted_cross_entropy_with_logits
-        #self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.result, self.labels))
-        self.loss =tf.reduce_mean(self.labels * -tf.log(self.result) + (1 - self.labels) * -tf.log(1 - self.result))
+        self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.model.pred, self.labels))
         loss_sum = tf.summary.scalar("loss", self.loss)
         print self.loss.get_shape()
         if not os.path.exists(os.path.join(self.checkpoint_dir)):
@@ -86,7 +73,7 @@ class CNN(object):
         print "the coordinates ", x
         data_label = np.load(os.path.join( "mapOrg","train","labels.npy"))
         inx = [(name.split(os.path.join(self.dataset_name, "train/"))[1]).split(".jpg")[0] for name in data]
-        inx =np.asarray(inx).astype(int)     
+        inx =np.asarray(inx).astype(int)    
         for epoch in range(0, config.epoch):
             batch_idxs = len(data)// self.batch_size
             for i in x:
@@ -96,9 +83,10 @@ class CNN(object):
                         batch_images =utils.getBatch(i,j,self.input_height,self.output_height, data[idx*self.batch_size:(idx+1)*self.batch_size])
                         batch_files_label = data_label[inx[idx*self.batch_size:(idx+1)*self.batch_size],i/self.output_height, j/self.output_height]
                         batch_files_label = np.reshape(batch_files_label, [self.batch_size,-1])
-                        
-                        #print "image num: ",inx[idx*self.batch_size:(idx+1)*self.batch_size],  "pixel coordinate: ", i/self.output_height, j/self.output_height, "pixel label: ", batch_files_label, "im name ", data[idx*self.batch_size:(idx+1)*self.batch_size]                        
-                        
+                        #batch_files_label = [[1]]
+                                #print "image num: ",inx[idx*self.batch_size:(idx+1)*self.batch_size],  "pixel coordinate: ", i/self.output_height, j/self.output_height, "pixel label: ", batch_files_label, "im name ", data[idx*self.batch_size:(idx+1)*self.batch_size]                     
+                        print batch_files_label
+                        print self.model.result.eval({self.inputs: batch_images})
                         err,_, summary_str = self.sess.run([self.loss,self.d_optim, self.summ],
                                                feed_dict={self.inputs: batch_images, self.labels:batch_files_label})
                         self.writer.add_summary(summary_str, counter)
@@ -124,11 +112,10 @@ class CNN(object):
                 for j in y:
                     batch_images =utils.getBatch(i,j,self.input_height,self.output_height, data_val[idx*self.batch_size:(idx+1)*self.batch_size])
                     batch_files_label = data_label[inx[idx*self.batch_size:(idx+1)*self.batch_size],i/self.output_height, j/self.output_height]
-                    batch_files_label = np.reshape(batch_files_label, [self.batch_size,-1])
-                    result, loss, summary_str = self.sess.run([self.result, self.loss, self.summVal],
-                                               feed_dict={self.inputs: batch_images, self.labels:batch_files_label})
-                    img[inx[idx*self.batch_size:(idx+1)*self.batch_size],i/self.output_height, j/self.output_height] = result
-                    total_loss += loss
+                    batch_files_label = np.reshape(batch_files_label, [self.batch_size,-1])                 
+                    err, summary_str = self.sess.run([self.loss, self.summVal],
+                                           feed_dict={self.inputs: batch_images, self.labels:batch_files_label})
+                    total_loss += err
                     self.writer.add_summary(summary_str, epoch)
             total_loss = total_loss/float(len(x)*len(x))       
             print "Test Epoch: [%2d] loss: %.8f"  % (epoch,total_loss)     

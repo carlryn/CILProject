@@ -14,9 +14,9 @@ class vgg16:
         self.parameters = []
 
         # zero-mean input
-        with tf.name_scope('preprocess') as scope:
-            mean = tf.constant([ 88.66068507, 87.67575921, 77.93427463], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
-            images = self.imgs-mean
+        #with tf.name_scope('preprocess') as scope:
+        #    mean = tf.constant([ 88.66068507, 87.67575921, 77.93427463], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
+        images = self.imgs#-mean
 
         # conv1_1
         with tf.name_scope('conv1_1') as scope:
@@ -188,35 +188,34 @@ class vgg16:
             out = tf.nn.bias_add(conv, biases)
             self.conv5_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
-            input_Linear = self.conv5_3
 
         # pool5
-        #self.pool5 = tf.nn.max_pool(self.conv5_3,
-        #                      ksize=[1, 2, 2, 1],
-        #                       strides=[1, 2, 2, 1],
-        #                       padding='SAME',
-        #                       name='pool4')
-        if self.output_size > 8*8:
-            with tf.name_scope("Upsample"):
-                downsampled_logits_shape = self.conv5_3.get_shape()
-                print "shape of the upsampled conv: ", self.conv5_3.get_shape()            
-                upsampled_logits_shape = tf.pack([
-                                                  downsampled_logits_shape[0],
-                                                  downsampled_logits_shape[1] * 2,
-                                                  downsampled_logits_shape[2] * 2,
-                                                  downsampled_logits_shape[3]
-                                                 ])
-                print "shape of the upsampled_logits_shape: ", upsampled_logits_shape.eval()
-                kernel = tf.Variable(tf.truncated_normal([4, 4, 512, 512], dtype=tf.float32,
-                                                         stddev=1e-1), name='weights')
-                # Perform the upsampling
-                upsampled_logits = tf.nn.conv2d_transpose(self.conv5_3, kernel,
-                                                 output_shape=upsampled_logits_shape,
-                                                 strides=[1, 2, 2, 1], padding='SAME')
-                print "shape of the upsampled output: ", upsampled_logits.get_shape()
-                input_Linear = upsampled_logits
+        self.pool5 = tf.nn.max_pool(self.conv5_3,
+                              ksize=[1, 2, 2, 1],
+                               strides=[1, 2, 2, 1],
+                               padding='SAME',
+                               name='pool4')
+#        if self.output_size > 8*8:
+#            with tf.name_scope("Upsample"):
+#                downsampled_logits_shape = self.conv5_3.get_shape()
+#                print "shape of the upsampled conv: ", self.conv5_3.get_shape()            
+#                upsampled_logits_shape = tf.pack([
+#                                                  downsampled_logits_shape[0],
+#                                                  downsampled_logits_shape[1] * 2,
+#                                                  downsampled_logits_shape[2] * 2,
+#                                                  downsampled_logits_shape[3]
+#                                                 ])
+#                print "shape of the upsampled_logits_shape: ", upsampled_logits_shape.eval()
+#                kernel = tf.Variable(tf.truncated_normal([4, 4, 512, 512], dtype=tf.float32,
+#                                                         stddev=1e-1), name='weights')
+#                # Perform the upsampling
+#                upsampled_logits = tf.nn.conv2d_transpose(self.conv5_3, kernel,
+#                                                 output_shape=upsampled_logits_shape,
+#                                                 strides=[1, 2, 2, 1], padding='SAME')
+#                print "shape of the upsampled output: ", upsampled_logits.get_shape()
+#                input_Linear = upsampled_logits
         with tf.variable_scope("Linear"):
-            input_ = tf.reshape(input_Linear, [self.batch_size, -1])
+            input_ = tf.reshape(self.pool5 , [self.batch_size, -1])
             shape = input_.get_shape().as_list()
             matrix = tf.get_variable("Matrix", [shape[1], self.output_size], tf.float32,
                                      tf.random_normal_initializer(stddev=0.02))
